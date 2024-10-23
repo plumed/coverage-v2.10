@@ -1,0 +1,305 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - mapping/PathReparameterization.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">mapping</a> - PathReparameterization.cpp<span style="font-size: 80%;"> (source / <a href="PathReparameterization.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">90</td>
+            <td class="headerCovTableEntry">94</td>
+            <td class="headerCovTableEntryHi">95.7 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2024-10-23 18:13:10</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">9</td>
+            <td class="headerCovTableEntry">10</td>
+            <td class="headerCovTableEntryHi">90.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<a name="2"><span class="lineNum">       2 </span>            :    Copyright (c) 2016-2020 The plumed team</a>
+<a name="3"><span class="lineNum">       3 </span>            :    (see the PEOPLE file at the root of the distribution for a list of names)</a>
+<a name="4"><span class="lineNum">       4 </span>            : </a>
+<a name="5"><span class="lineNum">       5 </span>            :    See http://www.plumed.org for more information.</a>
+<a name="6"><span class="lineNum">       6 </span>            : </a>
+<a name="7"><span class="lineNum">       7 </span>            :    This file is part of plumed, version 2.</a>
+<a name="8"><span class="lineNum">       8 </span>            : </a>
+<a name="9"><span class="lineNum">       9 </span>            :    plumed is free software: you can redistribute it and/or modify</a>
+<a name="10"><span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by</a>
+<a name="11"><span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or</a>
+<a name="12"><span class="lineNum">      12 </span>            :    (at your option) any later version.</a>
+<a name="13"><span class="lineNum">      13 </span>            : </a>
+<a name="14"><span class="lineNum">      14 </span>            :    plumed is distributed in the hope that it will be useful,</a>
+<a name="15"><span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of</a>
+<a name="16"><span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</a>
+<a name="17"><span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.</a>
+<a name="18"><span class="lineNum">      18 </span>            : </a>
+<a name="19"><span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License</a>
+<a name="20"><span class="lineNum">      20 </span>            :    along with plumed.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
+<a name="21"><span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */</a>
+<a name="22"><span class="lineNum">      22 </span>            : #include &quot;core/ActionWithValue.h&quot;</a>
+<a name="23"><span class="lineNum">      23 </span>            : #include &quot;core/ActionPilot.h&quot;</a>
+<a name="24"><span class="lineNum">      24 </span>            : #include &quot;core/ActionRegister.h&quot;</a>
+<a name="25"><span class="lineNum">      25 </span>            : #include &quot;core/PlumedMain.h&quot;</a>
+<a name="26"><span class="lineNum">      26 </span>            : #include &quot;core/ActionSet.h&quot;</a>
+<a name="27"><span class="lineNum">      27 </span>            : #include &quot;tools/Pbc.h&quot;</a>
+<a name="28"><span class="lineNum">      28 </span>            : #include &quot;tools/Matrix.h&quot;</a>
+<a name="29"><span class="lineNum">      29 </span>            : #include &quot;PathProjectionCalculator.h&quot;</a>
+<a name="30"><span class="lineNum">      30 </span>            : </a>
+<a name="31"><span class="lineNum">      31 </span>            : //+PLUMEDOC ANALYSIS REPARAMETERIZE_PATH</a>
+<a name="32"><span class="lineNum">      32 </span>            : /*</a>
+<a name="33"><span class="lineNum">      33 </span>            : Take an input path with frames that are not equally spaced and make the frames equally spaced</a>
+<a name="34"><span class="lineNum">      34 </span>            : </a>
+<a name="35"><span class="lineNum">      35 </span>            : \par Examples</a>
+<a name="36"><span class="lineNum">      36 </span>            : </a>
+<a name="37"><span class="lineNum">      37 </span>            : */</a>
+<a name="38"><span class="lineNum">      38 </span>            : //+ENDPLUMEDOC</a>
+<a name="39"><span class="lineNum">      39 </span>            : </a>
+<a name="40"><span class="lineNum">      40 </span>            : namespace PLMD {</a>
+<a name="41"><span class="lineNum">      41 </span>            : namespace mapping {</a>
+<a name="42"><span class="lineNum">      42 </span>            : </a>
+<a name="43"><span class="lineNum">      43 </span>            : class PathReparameterization : public ActionPilot {</a>
+<a name="44"><span class="lineNum">      44 </span>            : private:</a>
+<a name="45"><span class="lineNum">      45 </span>            : /// Number of cycles of the optimization algorithm to run</a>
+<a name="46"><span class="lineNum">      46 </span>            :   unsigned maxcycles;</a>
+<a name="47"><span class="lineNum">      47 </span>            : /// The points on the path to fix</a>
+<a name="48"><span class="lineNum">      48 </span>            :   unsigned ifix1, ifix2;</a>
+<a name="49"><span class="lineNum">      49 </span>            : /// Tolerance for the minimization algorithm</a>
+<a name="50"><span class="lineNum">      50 </span>            :   double TOL;</a>
+<a name="51"><span class="lineNum">      51 </span>            : /// Value containing ammount to displace each reference configuration by</a>
+<a name="52"><span class="lineNum">      52 </span>            :   Value* displace_value;</a>
+<a name="53"><span class="lineNum">      53 </span>            : /// The action for calculating the distances between the frames</a>
+<a name="54"><span class="lineNum">      54 </span>            :   PathProjectionCalculator path_projector;</a>
+<a name="55"><span class="lineNum">      55 </span>            : /// Used to store current spacing between frames in path</a>
+<a name="56"><span class="lineNum">      56 </span>            :   std::vector&lt;double&gt; data, len, sumlen, sfrac;</a>
+<a name="57"><span class="lineNum">      57 </span>            : ///</a>
+<a name="58"><span class="lineNum">      58 </span>            :   bool loopEnd( const int&amp; index, const int&amp; end, const int&amp; inc ) const ;</a>
+<a name="59"><span class="lineNum">      59 </span>            : ///</a>
+<a name="60"><span class="lineNum">      60 </span>            :   double computeSpacing( const unsigned&amp; ifrom, const unsigned&amp; ito );</a>
+<a name="61"><span class="lineNum">      61 </span>            : ///</a>
+<a name="62"><span class="lineNum">      62 </span>            :   void calcCurrentPathSpacings( const int&amp; istart, const int&amp; iend );</a>
+<a name="63"><span class="lineNum">      63 </span>            : ///</a>
+<a name="64"><span class="lineNum">      64 </span>            :   void reparameterizePart( const int&amp; istart, const int&amp; iend, const double&amp; target );</a>
+<a name="65"><span class="lineNum">      65 </span>            : public:</a>
+<a name="66"><span class="lineNum">      66 </span>            :   static void registerKeywords( Keywords&amp; keys );</a>
+<a name="67"><span class="lineNum">      67 </span>            :   PathReparameterization(const ActionOptions&amp;);</a>
+<a name="68"><span class="lineNum">      68 </span><span class="lineCov">         27 :   void calculate() {}</span></a>
+<a name="69"><span class="lineNum">      69 </span><span class="lineCov">         27 :   void apply() {}</span></a>
+<a name="70"><span class="lineNum">      70 </span>            :   void update();</a>
+<a name="71"><span class="lineNum">      71 </span>            : };</a>
+<a name="72"><span class="lineNum">      72 </span>            : </a>
+<a name="73"><span class="lineNum">      73 </span>            : PLUMED_REGISTER_ACTION(PathReparameterization,&quot;REPARAMETERIZE_PATH&quot;)</a>
+<a name="74"><span class="lineNum">      74 </span>            : </a>
+<a name="75"><span class="lineNum">      75 </span><span class="lineCov">          8 : void PathReparameterization::registerKeywords( Keywords&amp; keys ) {</span></a>
+<a name="76"><span class="lineNum">      76 </span><span class="lineCov">          8 :   Action::registerKeywords( keys ); ActionPilot::registerKeywords( keys );</span></a>
+<a name="77"><span class="lineNum">      77 </span><span class="lineCov">          8 :   PathProjectionCalculator::registerKeywords(keys);</span></a>
+<a name="78"><span class="lineNum">      78 </span><span class="lineCov">         16 :   keys.add(&quot;compulsory&quot;,&quot;STRIDE&quot;,&quot;1&quot;,&quot;the frequency with which to reparameterize the path&quot;);</span></a>
+<a name="79"><span class="lineNum">      79 </span><span class="lineCov">         16 :   keys.add(&quot;compulsory&quot;,&quot;FIXED&quot;,&quot;0&quot;,&quot;the frames in the path to fix&quot;);</span></a>
+<a name="80"><span class="lineNum">      80 </span><span class="lineCov">         16 :   keys.add(&quot;compulsory&quot;,&quot;MAXCYLES&quot;,&quot;100&quot;,&quot;number of cycles of the algorithm to run&quot;);</span></a>
+<a name="81"><span class="lineNum">      81 </span><span class="lineCov">         16 :   keys.add(&quot;compulsory&quot;,&quot;TOL&quot;,&quot;1E-4&quot;,&quot;the tolerance to use for the path reparameterization algorithm&quot;);</span></a>
+<a name="82"><span class="lineNum">      82 </span><span class="lineCov">         16 :   keys.add(&quot;optional&quot;,&quot;DISPLACE_FRAMES&quot;,&quot;label of an action that tells us how to displace the frames.  These displacements are applied before &quot;</span></a>
+<a name="83"><span class="lineNum">      83 </span>            :            &quot;running the reparameterization algorith&quot;);</a>
+<a name="84"><span class="lineNum">      84 </span><span class="lineCov">          8 : }</span></a>
+<a name="85"><span class="lineNum">      85 </span>            : </a>
+<a name="86"><span class="lineNum">      86 </span><span class="lineCov">          4 : PathReparameterization::PathReparameterization(const ActionOptions&amp;ao):</span></a>
+<a name="87"><span class="lineNum">      87 </span>            :   Action(ao),</a>
+<a name="88"><span class="lineNum">      88 </span>            :   ActionPilot(ao),</a>
+<a name="89"><span class="lineNum">      89 </span><span class="lineCov">          4 :   displace_value(NULL),</span></a>
+<a name="90"><span class="lineNum">      90 </span><span class="lineCov">          4 :   path_projector(this)</span></a>
+<a name="91"><span class="lineNum">      91 </span>            : {</a>
+<a name="92"><span class="lineNum">      92 </span><span class="lineCov">          8 :   parse(&quot;MAXCYLES&quot;,maxcycles); parse(&quot;TOL&quot;,TOL);</span></a>
+<a name="93"><span class="lineNum">      93 </span><span class="lineCov">          4 :   log.printf(&quot;  running till change is less than %f or until there have been %d optimization cycles \n&quot;, TOL, maxcycles);</span></a>
+<a name="94"><span class="lineNum">      94 </span><span class="lineCov">          4 :   len.resize( path_projector.getNumberOfFrames()  ); sumlen.resize( path_projector.getNumberOfFrames() ); sfrac.resize( path_projector.getNumberOfFrames() );</span></a>
+<a name="95"><span class="lineNum">      95 </span><span class="lineCov">          8 :   std::vector&lt;unsigned&gt; fixed; parseVector(&quot;FIXED&quot;,fixed);</span></a>
+<a name="96"><span class="lineNum">      96 </span><span class="lineCov">          4 :   if( fixed.size()==1 ) {</span></a>
+<a name="97"><span class="lineNum">      97 </span><span class="lineNoCov">          0 :     if( fixed[0]!=0 ) error(&quot;input to FIXED should be two integers&quot;);</span></a>
+<a name="98"><span class="lineNum">      98 </span><span class="lineNoCov">          0 :     ifix1=0; ifix2=path_projector.getNumberOfFrames()-1;</span></a>
+<a name="99"><span class="lineNum">      99 </span><span class="lineCov">          4 :   } else if( fixed.size()==2 ) {</span></a>
+<a name="100"><span class="lineNum">     100 </span><span class="lineCov">          4 :     if( fixed[0]&lt;1 || fixed[1]&lt;1 || fixed[0]&gt;path_projector.getNumberOfFrames() || fixed[1]&gt;path_projector.getNumberOfFrames() ) {</span></a>
+<a name="101"><span class="lineNum">     101 </span><span class="lineNoCov">          0 :       error(&quot;input to FIXED should be two numbers between 1 and the number of frames&quot;);</span></a>
+<a name="102"><span class="lineNum">     102 </span>            :     }</a>
+<a name="103"><span class="lineNum">     103 </span><span class="lineCov">          4 :     ifix1=fixed[0]-1; ifix2=fixed[1]-1;</span></a>
+<a name="104"><span class="lineNum">     104 </span><span class="lineNoCov">          0 :   } else error(&quot;input to FIXED should be two integers&quot;);</span></a>
+<a name="105"><span class="lineNum">     105 </span><span class="lineCov">          4 :   log.printf(&quot;  fixing frames %d and %d when reparameterizing \n&quot;, ifix1, ifix2 );</span></a>
+<a name="106"><span class="lineNum">     106 </span><span class="lineCov">          8 :   std::string dframe; parse(&quot;DISPLACE_FRAMES&quot;,dframe);</span></a>
+<a name="107"><span class="lineNum">     107 </span><span class="lineCov">          4 :   if( dframe.length()&gt;0 ) {</span></a>
+<a name="108"><span class="lineNum">     108 </span><span class="lineCov">          2 :     ActionWithValue* av = plumed.getActionSet().selectWithLabel&lt;ActionWithValue*&gt;( dframe );</span></a>
+<a name="109"><span class="lineNum">     109 </span><span class="lineCov">          2 :     if( !av ) error(&quot;could not find action with label &quot; + dframe + &quot; specified to DISPLACE_FRAMES keyword in input file&quot;);</span></a>
+<a name="110"><span class="lineNum">     110 </span><span class="lineCov">          2 :     if( av-&gt;getName()!=&quot;AVERAGE_PATH_DISPLACEMENT&quot; ) error(&quot;displace object is not of correct type&quot;);</span></a>
+<a name="111"><span class="lineNum">     111 </span><span class="lineCov">          2 :     displace_value = av-&gt;copyOutput(0);</span></a>
+<a name="112"><span class="lineNum">     112 </span>            :   }</a>
+<a name="113"><span class="lineNum">     113 </span><span class="lineCov">          4 : }</span></a>
+<a name="114"><span class="lineNum">     114 </span>            : </a>
+<a name="115"><span class="lineNum">     115 </span><span class="lineCov">      11542 : bool PathReparameterization::loopEnd( const int&amp; index, const int&amp; end, const int&amp; inc ) const {</span></a>
+<a name="116"><span class="lineNum">     116 </span><span class="lineCov">      11542 :   if( inc&gt;0 &amp;&amp; index&lt;end ) return false;</span></a>
+<a name="117"><span class="lineNum">     117 </span><span class="lineCov">        428 :   else if( inc&lt;0 &amp;&amp; index&gt;end ) return false;</span></a>
+<a name="118"><span class="lineNum">     118 </span>            :   return true;</a>
+<a name="119"><span class="lineNum">     119 </span>            : }</a>
+<a name="120"><span class="lineNum">     120 </span>            : </a>
+<a name="121"><span class="lineNum">     121 </span><span class="lineCov">       4459 : double PathReparameterization::computeSpacing( const unsigned&amp; ifrom, const unsigned&amp; ito ) {</span></a>
+<a name="122"><span class="lineNum">     122 </span><span class="lineCov">       4459 :   path_projector.getDisplaceVector( ifrom, ito, data );</span></a>
+<a name="123"><span class="lineNum">     123 </span><span class="lineCov">     170534 :   double length=0; for(unsigned i=0; i&lt;data.size(); ++i) length += data[i]*data[i];</span></a>
+<a name="124"><span class="lineNum">     124 </span><span class="lineCov">       4459 :   return sqrt( length );</span></a>
+<a name="125"><span class="lineNum">     125 </span>            : }</a>
+<a name="126"><span class="lineNum">     126 </span>            : </a>
+<a name="127"><span class="lineNum">     127 </span><span class="lineCov">        139 : void PathReparameterization::calcCurrentPathSpacings( const int&amp; istart, const int&amp; iend ) {</span></a>
+<a name="128"><span class="lineNum">     128 </span>            :   plumed_dbg_assert( istart&lt;len.size() &amp;&amp; iend&lt;len.size() );</a>
+<a name="129"><span class="lineNum">     129 </span><span class="lineCov">        139 :   len[istart] = sumlen[istart]=0;</span></a>
+<a name="130"><span class="lineNum">     130 </span>            :   //printf(&quot;HELLO PATH SPACINGS ARE CURRENTLY \n&quot;);</a>
+<a name="131"><span class="lineNum">     131 </span>            : </a>
+<a name="132"><span class="lineNum">     132 </span>            :   // Get the spacings given we can go forward and backwards</a>
+<a name="133"><span class="lineNum">     133 </span><span class="lineCov">        139 :   int incr=1; if( istart&gt;iend ) { incr=-1; }</span></a>
+<a name="134"><span class="lineNum">     134 </span>            : </a>
+<a name="135"><span class="lineNum">     135 </span><span class="lineCov">       4598 :   for(int i=istart+incr; loopEnd(i,iend+incr,incr)==false; i+=incr) {</span></a>
+<a name="136"><span class="lineNum">     136 </span><span class="lineCov">       4459 :     len[i] = computeSpacing( i-incr, i ); sumlen[i] = sumlen[i-incr] + len[i];</span></a>
+<a name="137"><span class="lineNum">     137 </span>            :     //printf(&quot;FRAME %d TO FRAME %d EQUALS %f : %f \n&quot;,i-incr,i,len[i],sumlen[i] );</a>
+<a name="138"><span class="lineNum">     138 </span>            :   }</a>
+<a name="139"><span class="lineNum">     139 </span><span class="lineCov">        139 : }</span></a>
+<a name="140"><span class="lineNum">     140 </span>            : </a>
+<a name="141"><span class="lineNum">     141 </span><span class="lineCov">         33 : void PathReparameterization::reparameterizePart( const int&amp; istart, const int&amp; iend, const double&amp; target ) {</span></a>
+<a name="142"><span class="lineNum">     142 </span><span class="lineCov">         33 :   calcCurrentPathSpacings( istart, iend ); unsigned cfin;</span></a>
+<a name="143"><span class="lineNum">     143 </span>            :   // If a target separation is set we fix where we want the nodes</a>
+<a name="144"><span class="lineNum">     144 </span><span class="lineCov">         33 :   int incr=1; if( istart&gt;iend ) { incr=-1; }</span></a>
+<a name="145"><span class="lineNum">     145 </span>            : </a>
+<a name="146"><span class="lineNum">     146 </span><span class="lineCov">         33 :   if( target&gt;0 ) {</span></a>
+<a name="147"><span class="lineNum">     147 </span><span class="lineCov">          6 :     if( iend&gt;istart ) {</span></a>
+<a name="148"><span class="lineNum">     148 </span><span class="lineCov">         19 :       for(unsigned i=istart; i&lt;iend+1; ++i) sfrac[i] = target*(i-istart);</span></a>
+<a name="149"><span class="lineNum">     149 </span>            :     } else {</a>
+<a name="150"><span class="lineNum">     150 </span><span class="lineCov">         14 :       for(int i=istart-1; i&gt;iend-1; --i) sfrac[i]=target*(istart-i);</span></a>
+<a name="151"><span class="lineNum">     151 </span>            :     }</a>
+<a name="152"><span class="lineNum">     152 </span><span class="lineCov">          6 :     cfin = iend+incr;</span></a>
+<a name="153"><span class="lineNum">     153 </span>            :   } else {</a>
+<a name="154"><span class="lineNum">     154 </span><span class="lineCov">         27 :     cfin = iend;</span></a>
+<a name="155"><span class="lineNum">     155 </span>            :   }</a>
+<a name="156"><span class="lineNum">     156 </span>            : </a>
+<a name="157"><span class="lineNum">     157 </span><span class="lineCov">         33 :   double prevsum=0.; Matrix&lt;double&gt; newmatrix( path_projector.getNumberOfFrames(), data.size() );</span></a>
+<a name="158"><span class="lineNum">     158 </span><span class="lineCov">        139 :   for(unsigned iter=0; iter&lt;maxcycles; ++iter) {</span></a>
+<a name="159"><span class="lineNum">     159 </span><span class="lineCov">        139 :     if( fabs(sumlen[iend] - prevsum)&lt;=TOL ) break ;</span></a>
+<a name="160"><span class="lineNum">     160 </span>            :     prevsum = sumlen[iend];</a>
+<a name="161"><span class="lineNum">     161 </span>            :     // If no target is set we redistribute length</a>
+<a name="162"><span class="lineNum">     162 </span><span class="lineCov">        106 :     if( target&lt;0 ) {</span></a>
+<a name="163"><span class="lineNum">     163 </span><span class="lineCov">         94 :       plumed_assert( istart&lt;iend );</span></a>
+<a name="164"><span class="lineNum">     164 </span><span class="lineCov">         94 :       double dr = sumlen[iend] / static_cast&lt;double&gt;( iend - istart );</span></a>
+<a name="165"><span class="lineNum">     165 </span><span class="lineCov">       3506 :       for(unsigned i=istart; i&lt;iend; ++i) sfrac[i] = dr*(i-istart);</span></a>
+<a name="166"><span class="lineNum">     166 </span>            :     }</a>
+<a name="167"><span class="lineNum">     167 </span>            : </a>
+<a name="168"><span class="lineNum">     168 </span>            :     // Now compute positions of new nodes in path</a>
+<a name="169"><span class="lineNum">     169 </span><span class="lineCov">       3472 :     for(int i=istart+incr; loopEnd(i,cfin,incr)==false; i+=incr) {</span></a>
+<a name="170"><span class="lineNum">     170 </span><span class="lineCov">       3366 :       int k = istart;</span></a>
+<a name="171"><span class="lineNum">     171 </span><span class="lineCov">      69429 :       while( !((sumlen[k] &lt; sfrac[i]) &amp;&amp; (sumlen[k+incr]&gt;=sfrac[i])) ) {</span></a>
+<a name="172"><span class="lineNum">     172 </span><span class="lineCov">      66069 :         k+=incr;</span></a>
+<a name="173"><span class="lineNum">     173 </span><span class="lineCov">      66069 :         if( cfin==iend &amp;&amp; k&gt;= iend+1 ) plumed_merror(&quot;path reparameterization error&quot;);</span></a>
+<a name="174"><span class="lineNum">     174 </span><span class="lineCov">      66069 :         else if( cfin==(iend+1) &amp;&amp; k&gt;=iend ) { k=iend-1; break; }</span></a>
+<a name="175"><span class="lineNum">     175 </span><span class="lineCov">      66067 :         else if( cfin==(iend-1) &amp;&amp; k&lt;=iend ) { k=iend+1; break; }</span></a>
+<a name="176"><span class="lineNum">     176 </span>            :       }</a>
+<a name="177"><span class="lineNum">     177 </span><span class="lineCov">       3366 :       double dr = (sfrac[i]-sumlen[k])/len[k+incr];</span></a>
+<a name="178"><span class="lineNum">     178 </span>            :       // Copy the reference configuration to the row of a matrix</a>
+<a name="179"><span class="lineNum">     179 </span><span class="lineCov">       3366 :       path_projector.getReferenceConfiguration( k, data );</span></a>
+<a name="180"><span class="lineNum">     180 </span><span class="lineCov">     129024 :       for(unsigned j=0; j&lt;data.size(); ++j) newmatrix(i,j) = data[j];</span></a>
+<a name="181"><span class="lineNum">     181 </span><span class="lineCov">       3366 :       path_projector.getDisplaceVector( k, k+incr, data );</span></a>
+<a name="182"><span class="lineNum">     182 </span>            :       // Shift the reference configuration by this ammount</a>
+<a name="183"><span class="lineNum">     183 </span><span class="lineCov">     129024 :       for(unsigned j=0; j&lt;data.size(); ++j) newmatrix(i,j) += dr*data[j];</span></a>
+<a name="184"><span class="lineNum">     184 </span>            :     }</a>
+<a name="185"><span class="lineNum">     185 </span>            : </a>
+<a name="186"><span class="lineNum">     186 </span>            :     // Copy the positions of the new path to the new paths</a>
+<a name="187"><span class="lineNum">     187 </span><span class="lineCov">       3472 :     for(int i=istart+incr; loopEnd(i,cfin,incr)==false; i+=incr) {</span></a>
+<a name="188"><span class="lineNum">     188 </span><span class="lineCov">     129024 :       for(unsigned j=0; j&lt;data.size(); ++j) data[j] = newmatrix(i,j);</span></a>
+<a name="189"><span class="lineNum">     189 </span><span class="lineCov">       3366 :       path_projector.setReferenceConfiguration( i, data );</span></a>
+<a name="190"><span class="lineNum">     190 </span>            :     }</a>
+<a name="191"><span class="lineNum">     191 </span>            : </a>
+<a name="192"><span class="lineNum">     192 </span>            :     // Recompute the separations between frames</a>
+<a name="193"><span class="lineNum">     193 </span><span class="lineCov">        106 :     calcCurrentPathSpacings( istart, iend );</span></a>
+<a name="194"><span class="lineNum">     194 </span>            :   }</a>
+<a name="195"><span class="lineNum">     195 </span><span class="lineCov">         33 : }</span></a>
+<a name="196"><span class="lineNum">     196 </span>            : </a>
+<a name="197"><span class="lineNum">     197 </span><span class="lineCov">         29 : void PathReparameterization::update() {</span></a>
+<a name="198"><span class="lineNum">     198 </span>            :   // We never run this on the first step</a>
+<a name="199"><span class="lineNum">     199 </span><span class="lineCov">         29 :   if( getStep()==0 ) return ;</span></a>
+<a name="200"><span class="lineNum">     200 </span>            : </a>
+<a name="201"><span class="lineNum">     201 </span>            :   // Shift the frames using the displacements</a>
+<a name="202"><span class="lineNum">     202 </span><span class="lineCov">         27 :   if( displace_value ) {</span></a>
+<a name="203"><span class="lineNum">     203 </span><span class="lineCov">       1031 :     for(unsigned i=0; i&lt;path_projector.getNumberOfFrames(); ++i) {</span></a>
+<a name="204"><span class="lineNum">     204 </span><span class="lineCov">       1006 :       if( i==ifix1 || i==ifix2 ) continue ;</span></a>
+<a name="205"><span class="lineNum">     205 </span>            :       // Retrieve the current position of the frame</a>
+<a name="206"><span class="lineNum">     206 </span><span class="lineCov">        956 :       path_projector.getReferenceConfiguration( i, data );</span></a>
+<a name="207"><span class="lineNum">     207 </span>            :       // Shift using the averages accumulated in the action that accumulates the displacements</a>
+<a name="208"><span class="lineNum">     208 </span><span class="lineCov">        956 :       unsigned kstart = i*data.size();</span></a>
+<a name="209"><span class="lineNum">     209 </span><span class="lineCov">      36908 :       for(unsigned j=0; j&lt;data.size(); ++j) data[j] += displace_value-&gt;get( kstart + j );</span></a>
+<a name="210"><span class="lineNum">     210 </span>            :       // And now set the new position of the refernce frame</a>
+<a name="211"><span class="lineNum">     211 </span><span class="lineCov">        956 :       path_projector.setReferenceConfiguration( i, data );</span></a>
+<a name="212"><span class="lineNum">     212 </span>            :     }</a>
+<a name="213"><span class="lineNum">     213 </span>            :   }</a>
+<a name="214"><span class="lineNum">     214 </span>            : </a>
+<a name="215"><span class="lineNum">     215 </span>            :   // First reparameterize the part between the fixed frames</a>
+<a name="216"><span class="lineNum">     216 </span><span class="lineCov">         27 :   reparameterizePart( ifix1, ifix2, -1.0 );</span></a>
+<a name="217"><span class="lineNum">     217 </span>            : </a>
+<a name="218"><span class="lineNum">     218 </span>            :   // Get the separation between frames which we will use to set the remaining frames</a>
+<a name="219"><span class="lineNum">     219 </span><span class="lineCov">         27 :   double target = sumlen[ifix2] / ( ifix2 - ifix1 );</span></a>
+<a name="220"><span class="lineNum">     220 </span>            : </a>
+<a name="221"><span class="lineNum">     221 </span>            :   // And reparameterize the begining and end of the path</a>
+<a name="222"><span class="lineNum">     222 </span><span class="lineCov">         27 :   if( ifix1&gt;0 ) reparameterizePart( ifix1, 0, target );</span></a>
+<a name="223"><span class="lineNum">     223 </span><span class="lineCov">         27 :   if( ifix2&lt;(path_projector.getNumberOfFrames()-1) ) reparameterizePart( ifix2, path_projector.getNumberOfFrames()-1, target );</span></a>
+<a name="224"><span class="lineNum">     224 </span>            :   // And update any RMSD objects that depend on input values</a>
+<a name="225"><span class="lineNum">     225 </span><span class="lineCov">         27 :   path_projector.updateDepedentRMSDObjects();</span></a>
+<a name="226"><span class="lineNum">     226 </span>            : }</a>
+<a name="227"><span class="lineNum">     227 </span>            : </a>
+<a name="228"><span class="lineNum">     228 </span>            : }</a>
+<a name="229"><span class="lineNum">     229 </span>            : }</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="https://github.com/linux-test-project/lcov" target="_parent">LCOV version 1.16</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

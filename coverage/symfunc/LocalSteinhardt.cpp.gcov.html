@@ -1,0 +1,521 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - symfunc/LocalSteinhardt.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">symfunc</a> - LocalSteinhardt.cpp<span style="font-size: 80%;"> (source / <a href="LocalSteinhardt.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">83</td>
+            <td class="headerCovTableEntry">106</td>
+            <td class="headerCovTableEntryMed">78.3 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2024-10-23 18:13:10</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntryMed">80.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<a name="2"><span class="lineNum">       2 </span>            :    Copyright (c) 2015-2017 The plumed team</a>
+<a name="3"><span class="lineNum">       3 </span>            :    (see the PEOPLE file at the root of the distribution for a list of names)</a>
+<a name="4"><span class="lineNum">       4 </span>            : </a>
+<a name="5"><span class="lineNum">       5 </span>            :    See http://www.plumed.org for more information.</a>
+<a name="6"><span class="lineNum">       6 </span>            : </a>
+<a name="7"><span class="lineNum">       7 </span>            :    This file is part of plumed, version 2.</a>
+<a name="8"><span class="lineNum">       8 </span>            : </a>
+<a name="9"><span class="lineNum">       9 </span>            :    plumed is free software: you can redistribute it and/or modify</a>
+<a name="10"><span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by</a>
+<a name="11"><span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or</a>
+<a name="12"><span class="lineNum">      12 </span>            :    (at your option) any later version.</a>
+<a name="13"><span class="lineNum">      13 </span>            : </a>
+<a name="14"><span class="lineNum">      14 </span>            :    plumed is distributed in the hope that it will be useful,</a>
+<a name="15"><span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of</a>
+<a name="16"><span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</a>
+<a name="17"><span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.</a>
+<a name="18"><span class="lineNum">      18 </span>            : </a>
+<a name="19"><span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License</a>
+<a name="20"><span class="lineNum">      20 </span>            :    along with plumed.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
+<a name="21"><span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */</a>
+<a name="22"><span class="lineNum">      22 </span>            : #include &quot;core/ActionShortcut.h&quot;</a>
+<a name="23"><span class="lineNum">      23 </span>            : #include &quot;core/ActionRegister.h&quot;</a>
+<a name="24"><span class="lineNum">      24 </span>            : #include &quot;multicolvar/MultiColvarShortcuts.h&quot;</a>
+<a name="25"><span class="lineNum">      25 </span>            : #include &quot;core/PlumedMain.h&quot;</a>
+<a name="26"><span class="lineNum">      26 </span>            : #include &quot;core/ActionSet.h&quot;</a>
+<a name="27"><span class="lineNum">      27 </span>            : #include &quot;core/ActionWithValue.h&quot;</a>
+<a name="28"><span class="lineNum">      28 </span>            : </a>
+<a name="29"><span class="lineNum">      29 </span>            : namespace PLMD {</a>
+<a name="30"><span class="lineNum">      30 </span>            : namespace symfunc {</a>
+<a name="31"><span class="lineNum">      31 </span>            : </a>
+<a name="32"><span class="lineNum">      32 </span>            : //+PLUMEDOC MCOLVARF LOCAL_Q1</a>
+<a name="33"><span class="lineNum">      33 </span>            : /*</a>
+<a name="34"><span class="lineNum">      34 </span>            : Calculate the local degree of order around an atoms by taking the average dot product between the q_1 vector on the central atom and the q_3 vector on the atoms in the first coordination sphere.</a>
+<a name="35"><span class="lineNum">      35 </span>            : </a>
+<a name="36"><span class="lineNum">      36 </span>            : \par Examples</a>
+<a name="37"><span class="lineNum">      37 </span>            : </a>
+<a name="38"><span class="lineNum">      38 </span>            : */</a>
+<a name="39"><span class="lineNum">      39 </span>            : //+ENDPLUMEDOC</a>
+<a name="40"><span class="lineNum">      40 </span>            : </a>
+<a name="41"><span class="lineNum">      41 </span>            : //+PLUMEDOC MCOLVARF LOCAL_Q3</a>
+<a name="42"><span class="lineNum">      42 </span>            : /*</a>
+<a name="43"><span class="lineNum">      43 </span>            : Calculate the local degree of order around an atoms by taking the average dot product between the q_3 vector on the central atom and the q_3 vector on the atoms in the first coordination sphere.</a>
+<a name="44"><span class="lineNum">      44 </span>            : </a>
+<a name="45"><span class="lineNum">      45 </span>            : The \ref Q3 command allows one to calculate one complex vectors for each of the atoms in your system that describe the degree of order in the coordination sphere</a>
+<a name="46"><span class="lineNum">      46 </span>            : around a particular atom. The difficulty with these vectors comes when combining the order parameters from all of the individual atoms/molecules so as to get a</a>
+<a name="47"><span class="lineNum">      47 </span>            : measure of the global degree of order for the system. The simplest way of doing this - calculating the average Steinhardt parameter - can be problematic. If one is</a>
+<a name="48"><span class="lineNum">      48 </span>            : examining nucleation say only the order parameters for those atoms in the nucleus will change significantly when the nucleus forms. The order parameters for the</a>
+<a name="49"><span class="lineNum">      49 </span>            : atoms in the surrounding liquid will remain pretty much the same. As such if one models a small nucleus embedded in a very large amount of solution/melt any</a>
+<a name="50"><span class="lineNum">      50 </span>            : change in the average order parameter will be negligible. Substantial changes in the value of this average can be observed in simulations of nucleation but only</a>
+<a name="51"><span class="lineNum">      51 </span>            : because the number of atoms is relatively small.</a>
+<a name="52"><span class="lineNum">      52 </span>            : </a>
+<a name="53"><span class="lineNum">      53 </span>            : When the average \ref Q3 parameter is used to bias the dynamics a problems</a>
+<a name="54"><span class="lineNum">      54 </span>            : can occur. These averaged coordinates cannot distinguish between the correct,</a>
+<a name="55"><span class="lineNum">      55 </span>            : single-nucleus pathway and a concerted pathway in which all the atoms rearrange</a>
+<a name="56"><span class="lineNum">      56 </span>            : themselves into their solid-like configuration simultaneously. This second type</a>
+<a name="57"><span class="lineNum">      57 </span>            : of pathway would be impossible in reality because there is a large entropic</a>
+<a name="58"><span class="lineNum">      58 </span>            : barrier that prevents concerted processes like this from happening.  However,</a>
+<a name="59"><span class="lineNum">      59 </span>            : in the finite sized systems that are commonly simulated this barrier is reduced</a>
+<a name="60"><span class="lineNum">      60 </span>            : substantially. As a result in simulations where average Steinhardt parameters</a>
+<a name="61"><span class="lineNum">      61 </span>            : are biased there are often quite dramatic system size effects</a>
+<a name="62"><span class="lineNum">      62 </span>            : </a>
+<a name="63"><span class="lineNum">      63 </span>            : If one wants to simulate nucleation using some form on</a>
+<a name="64"><span class="lineNum">      64 </span>            : biased dynamics what is really required is an order parameter that measures:</a>
+<a name="65"><span class="lineNum">      65 </span>            : </a>
+<a name="66"><span class="lineNum">      66 </span>            : - Whether or not the coordination spheres around atoms are ordered</a>
+<a name="67"><span class="lineNum">      67 </span>            : - Whether or not the atoms that are ordered are clustered together in a crystalline nucleus</a>
+<a name="68"><span class="lineNum">      68 </span>            : </a>
+<a name="69"><span class="lineNum">      69 </span>            : \ref LOCAL_AVERAGE and \ref NLINKS are variables that can be combined with the Steinhardt parameters allow to calculate variables that satisfy these requirements.</a>
+<a name="70"><span class="lineNum">      70 </span>            : LOCAL_Q3 is another variable that can be used in these sorts of calculations. The LOCAL_Q3 parameter for a particular atom is a number that measures the extent to</a>
+<a name="71"><span class="lineNum">      71 </span>            : which the orientation of the atoms in the first coordination sphere of an atom match the orientation of the central atom.  It does this by calculating the following</a>
+<a name="72"><span class="lineNum">      72 </span>            : quantity for each of the atoms in the system:</a>
+<a name="73"><span class="lineNum">      73 </span>            : </a>
+<a name="74"><span class="lineNum">      74 </span>            : \f[</a>
+<a name="75"><span class="lineNum">      75 </span>            :  s_i = \frac{ \sum_j \sigma( r_{ij} ) \sum_{m=-3}^3 q_{3m}^{*}(i)q_{3m}(j) }{ \sum_j \sigma( r_{ij} ) }</a>
+<a name="76"><span class="lineNum">      76 </span>            : \f]</a>
+<a name="77"><span class="lineNum">      77 </span>            : </a>
+<a name="78"><span class="lineNum">      78 </span>            : where \f$q_{3m}(i)\f$ and \f$q_{3m}(j)\f$ are the 3rd order Steinhardt vectors calculated for atom \f$i\f$ and atom \f$j\f$ respectively and the asterisk denotes complex</a>
+<a name="79"><span class="lineNum">      79 </span>            : conjugation.  The function</a>
+<a name="80"><span class="lineNum">      80 </span>            : \f$\sigma( r_{ij} )\f$ is a \ref switchingfunction that acts on the distance between atoms \f$i\f$ and \f$j\f$.  The parameters of this function should be set</a>
+<a name="81"><span class="lineNum">      81 </span>            : so that it the function is equal to one when atom \f$j\f$ is in the first coordination sphere of atom \f$i\f$ and is zero otherwise.  The sum in the numerator</a>
+<a name="82"><span class="lineNum">      82 </span>            : of this expression is the dot product of the Steinhardt parameters for atoms \f$i\f$ and \f$j\f$ and thus measures the degree to which the orientations of these</a>
+<a name="83"><span class="lineNum">      83 </span>            : adjacent atoms is correlated.</a>
+<a name="84"><span class="lineNum">      84 </span>            : </a>
+<a name="85"><span class="lineNum">      85 </span>            : \par Examples</a>
+<a name="86"><span class="lineNum">      86 </span>            : </a>
+<a name="87"><span class="lineNum">      87 </span>            : The following command calculates the average value of the LOCAL_Q3 parameter for the 64 Lennard Jones atoms in the system under study and prints this</a>
+<a name="88"><span class="lineNum">      88 </span>            : quantity to a file called colvar.</a>
+<a name="89"><span class="lineNum">      89 </span>            : </a>
+<a name="90"><span class="lineNum">      90 </span>            : \plumedfile</a>
+<a name="91"><span class="lineNum">      91 </span>            : Q3 SPECIES=1-64 D_0=1.3 R_0=0.2 LABEL=q3</a>
+<a name="92"><span class="lineNum">      92 </span>            : LOCAL_Q3 SPECIES=q3 SWITCH={RATIONAL D_0=1.3 R_0=0.2} MEAN LABEL=lq3</a>
+<a name="93"><span class="lineNum">      93 </span>            : PRINT ARG=lq3.mean FILE=colvar</a>
+<a name="94"><span class="lineNum">      94 </span>            : \endplumedfile</a>
+<a name="95"><span class="lineNum">      95 </span>            : </a>
+<a name="96"><span class="lineNum">      96 </span>            : The following input calculates the distribution of LOCAL_Q3 parameters at any given time and outputs this information to a file.</a>
+<a name="97"><span class="lineNum">      97 </span>            : </a>
+<a name="98"><span class="lineNum">      98 </span>            : \plumedfile</a>
+<a name="99"><span class="lineNum">      99 </span>            : Q3 SPECIES=1-64 D_0=1.3 R_0=0.2 LABEL=q3</a>
+<a name="100"><span class="lineNum">     100 </span>            : LOCAL_Q3 SPECIES=q3 SWITCH={RATIONAL D_0=1.3 R_0=0.2} HISTOGRAM={GAUSSIAN LOWER=0.0 UPPER=1.0 NBINS=20 SMEAR=0.1} LABEL=lq3</a>
+<a name="101"><span class="lineNum">     101 </span>            : PRINT ARG=lq3.* FILE=colvar</a>
+<a name="102"><span class="lineNum">     102 </span>            : \endplumedfile</a>
+<a name="103"><span class="lineNum">     103 </span>            : </a>
+<a name="104"><span class="lineNum">     104 </span>            : The following calculates the LOCAL_Q3 parameters for atoms 1-5 only. For each of these atoms comparisons of the geometry of the coordination sphere</a>
+<a name="105"><span class="lineNum">     105 </span>            : are done with those of all the other atoms in the system.  The final quantity is the average and is outputted to a file</a>
+<a name="106"><span class="lineNum">     106 </span>            : </a>
+<a name="107"><span class="lineNum">     107 </span>            : \plumedfile</a>
+<a name="108"><span class="lineNum">     108 </span>            : Q3 SPECIESA=1-5 SPECIESB=1-64 D_0=1.3 R_0=0.2 LABEL=q3a</a>
+<a name="109"><span class="lineNum">     109 </span>            : Q3 SPECIESA=6-64 SPECIESB=1-64 D_0=1.3 R_0=0.2 LABEL=q3b</a>
+<a name="110"><span class="lineNum">     110 </span>            : </a>
+<a name="111"><span class="lineNum">     111 </span>            : LOCAL_Q3 SPECIES=q3a,q3b SWITCH={RATIONAL D_0=1.3 R_0=0.2} MEAN LOWMEM LABEL=w3</a>
+<a name="112"><span class="lineNum">     112 </span>            : PRINT ARG=w3.* FILE=colvar</a>
+<a name="113"><span class="lineNum">     113 </span>            : \endplumedfile</a>
+<a name="114"><span class="lineNum">     114 </span>            : </a>
+<a name="115"><span class="lineNum">     115 </span>            : */</a>
+<a name="116"><span class="lineNum">     116 </span>            : //+ENDPLUMEDOC</a>
+<a name="117"><span class="lineNum">     117 </span>            : </a>
+<a name="118"><span class="lineNum">     118 </span>            : //+PLUMEDOC MCOLVARF LOCAL_Q4</a>
+<a name="119"><span class="lineNum">     119 </span>            : /*</a>
+<a name="120"><span class="lineNum">     120 </span>            : Calculate the local degree of order around an atoms by taking the average dot product between the q_4 vector on the central atom and the q_4 vector on the atoms in the first coordination sphere.</a>
+<a name="121"><span class="lineNum">     121 </span>            : </a>
+<a name="122"><span class="lineNum">     122 </span>            : The \ref Q4 command allows one to calculate one complex vectors for each of the atoms in your system that describe the degree of order in the coordination sphere</a>
+<a name="123"><span class="lineNum">     123 </span>            : around a particular atom. The difficulty with these vectors comes when combining the order parameters from all of the individual atoms/molecules so as to get a</a>
+<a name="124"><span class="lineNum">     124 </span>            : measure of the global degree of order for the system. The simplest way of doing this - calculating the average Steinhardt parameter - can be problematic. If one is</a>
+<a name="125"><span class="lineNum">     125 </span>            : examining nucleation say only the order parameters for those atoms in the nucleus will change significantly when the nucleus forms. The order parameters for the</a>
+<a name="126"><span class="lineNum">     126 </span>            : atoms in the surrounding liquid will remain pretty much the same. As such if one models a small nucleus embedded in a very large amount of solution/melt any</a>
+<a name="127"><span class="lineNum">     127 </span>            : change in the average order parameter will be negligible. Substantial changes in the value of this average can be observed in simulations of nucleation but only</a>
+<a name="128"><span class="lineNum">     128 </span>            : because the number of atoms is relatively small.</a>
+<a name="129"><span class="lineNum">     129 </span>            : </a>
+<a name="130"><span class="lineNum">     130 </span>            : When the average \ref Q4 parameter is used to bias the dynamics a problems</a>
+<a name="131"><span class="lineNum">     131 </span>            : can occur. These averaged coordinates cannot distinguish between the correct,</a>
+<a name="132"><span class="lineNum">     132 </span>            : single-nucleus pathway and a concerted pathway in which all the atoms rearrange</a>
+<a name="133"><span class="lineNum">     133 </span>            : themselves into their solid-like configuration simultaneously. This second type</a>
+<a name="134"><span class="lineNum">     134 </span>            : of pathway would be impossible in reality because there is a large entropic</a>
+<a name="135"><span class="lineNum">     135 </span>            : barrier that prevents concerted processes like this from happening.  However,</a>
+<a name="136"><span class="lineNum">     136 </span>            : in the finite sized systems that are commonly simulated this barrier is reduced</a>
+<a name="137"><span class="lineNum">     137 </span>            : substantially. As a result in simulations where average Steinhardt parameters</a>
+<a name="138"><span class="lineNum">     138 </span>            : are biased there are often quite dramatic system size effects</a>
+<a name="139"><span class="lineNum">     139 </span>            : </a>
+<a name="140"><span class="lineNum">     140 </span>            : If one wants to simulate nucleation using some form on</a>
+<a name="141"><span class="lineNum">     141 </span>            : biased dynamics what is really required is an order parameter that measures:</a>
+<a name="142"><span class="lineNum">     142 </span>            : </a>
+<a name="143"><span class="lineNum">     143 </span>            : - Whether or not the coordination spheres around atoms are ordered</a>
+<a name="144"><span class="lineNum">     144 </span>            : - Whether or not the atoms that are ordered are clustered together in a crystalline nucleus</a>
+<a name="145"><span class="lineNum">     145 </span>            : </a>
+<a name="146"><span class="lineNum">     146 </span>            : \ref LOCAL_AVERAGE and \ref NLINKS are variables that can be combined with the Steinhardt parameters allow to calculate variables that satisfy these requirements.</a>
+<a name="147"><span class="lineNum">     147 </span>            : LOCAL_Q4 is another variable that can be used in these sorts of calculations. The LOCAL_Q4 parameter for a particular atom is a number that measures the extent to</a>
+<a name="148"><span class="lineNum">     148 </span>            : which the orientation of the atoms in the first coordination sphere of an atom match the orientation of the central atom.  It does this by calculating the following</a>
+<a name="149"><span class="lineNum">     149 </span>            : quantity for each of the atoms in the system:</a>
+<a name="150"><span class="lineNum">     150 </span>            : </a>
+<a name="151"><span class="lineNum">     151 </span>            : \f[</a>
+<a name="152"><span class="lineNum">     152 </span>            :  s_i = \frac{ \sum_j \sigma( r_{ij} ) \sum_{m=-4}^4 q_{4m}^{*}(i)q_{4m}(j) }{ \sum_j \sigma( r_{ij} ) }</a>
+<a name="153"><span class="lineNum">     153 </span>            : \f]</a>
+<a name="154"><span class="lineNum">     154 </span>            : </a>
+<a name="155"><span class="lineNum">     155 </span>            : where \f$q_{4m}(i)\f$ and \f$q_{4m}(j)\f$ are the fourth order Steinhardt vectors calculated for atom \f$i\f$ and atom \f$j\f$ respectively and the asterisk denotes</a>
+<a name="156"><span class="lineNum">     156 </span>            : complex conjugation.  The function</a>
+<a name="157"><span class="lineNum">     157 </span>            : \f$\sigma( r_{ij} )\f$ is a \ref switchingfunction that acts on the distance between atoms \f$i\f$ and \f$j\f$.  The parameters of this function should be set</a>
+<a name="158"><span class="lineNum">     158 </span>            : so that it the function is equal to one when atom \f$j\f$ is in the first coordination sphere of atom \f$i\f$ and is zero otherwise.  The sum in the numerator</a>
+<a name="159"><span class="lineNum">     159 </span>            : of this expression is the dot product of the Steinhardt parameters for atoms \f$i\f$ and \f$j\f$ and thus measures the degree to which the orientations of these</a>
+<a name="160"><span class="lineNum">     160 </span>            : adjacent atoms is correlated.</a>
+<a name="161"><span class="lineNum">     161 </span>            : </a>
+<a name="162"><span class="lineNum">     162 </span>            : \par Examples</a>
+<a name="163"><span class="lineNum">     163 </span>            : </a>
+<a name="164"><span class="lineNum">     164 </span>            : The following command calculates the average value of the LOCAL_Q4 parameter for the 64 Lennard Jones atoms in the system under study and prints this</a>
+<a name="165"><span class="lineNum">     165 </span>            : quantity to a file called colvar.</a>
+<a name="166"><span class="lineNum">     166 </span>            : </a>
+<a name="167"><span class="lineNum">     167 </span>            : \plumedfile</a>
+<a name="168"><span class="lineNum">     168 </span>            : Q4 SPECIES=1-64 D_0=1.3 R_0=0.2 LABEL=q4</a>
+<a name="169"><span class="lineNum">     169 </span>            : LOCAL_Q4 SPECIES=q4 SWITCH={RATIONAL D_0=1.3 R_0=0.2} MEAN LABEL=lq4</a>
+<a name="170"><span class="lineNum">     170 </span>            : PRINT ARG=lq4.mean FILE=colvar</a>
+<a name="171"><span class="lineNum">     171 </span>            : \endplumedfile</a>
+<a name="172"><span class="lineNum">     172 </span>            : </a>
+<a name="173"><span class="lineNum">     173 </span>            : The following input calculates the distribution of LOCAL_Q4 parameters at any given time and outputs this information to a file.</a>
+<a name="174"><span class="lineNum">     174 </span>            : </a>
+<a name="175"><span class="lineNum">     175 </span>            : \plumedfile</a>
+<a name="176"><span class="lineNum">     176 </span>            : Q4 SPECIES=1-64 D_0=1.3 R_0=0.2 LABEL=q4</a>
+<a name="177"><span class="lineNum">     177 </span>            : LOCAL_Q4 SPECIES=q4 SWITCH={RATIONAL D_0=1.3 R_0=0.2} HISTOGRAM={GAUSSIAN LOWER=0.0 UPPER=1.0 NBINS=20 SMEAR=0.1} LABEL=lq4</a>
+<a name="178"><span class="lineNum">     178 </span>            : PRINT ARG=lq4.* FILE=colvar</a>
+<a name="179"><span class="lineNum">     179 </span>            : \endplumedfile</a>
+<a name="180"><span class="lineNum">     180 </span>            : </a>
+<a name="181"><span class="lineNum">     181 </span>            : The following calculates the LOCAL_Q4 parameters for atoms 1-5 only. For each of these atoms comparisons of the geometry of the coordination sphere</a>
+<a name="182"><span class="lineNum">     182 </span>            : are done with those of all the other atoms in the system.  The final quantity is the average and is outputted to a file</a>
+<a name="183"><span class="lineNum">     183 </span>            : </a>
+<a name="184"><span class="lineNum">     184 </span>            : \plumedfile</a>
+<a name="185"><span class="lineNum">     185 </span>            : Q4 SPECIESA=1-5 SPECIESB=1-64 D_0=1.3 R_0=0.2 LABEL=q4a</a>
+<a name="186"><span class="lineNum">     186 </span>            : Q4 SPECIESA=6-64 SPECIESB=1-64 D_0=1.3 R_0=0.2 LABEL=q4b</a>
+<a name="187"><span class="lineNum">     187 </span>            : </a>
+<a name="188"><span class="lineNum">     188 </span>            : LOCAL_Q4 SPECIES=q4a,q4b SWITCH={RATIONAL D_0=1.3 R_0=0.2} MEAN LOWMEM LABEL=w4</a>
+<a name="189"><span class="lineNum">     189 </span>            : PRINT ARG=w4.* FILE=colvar</a>
+<a name="190"><span class="lineNum">     190 </span>            : \endplumedfile</a>
+<a name="191"><span class="lineNum">     191 </span>            : </a>
+<a name="192"><span class="lineNum">     192 </span>            : */</a>
+<a name="193"><span class="lineNum">     193 </span>            : //+ENDPLUMEDOC</a>
+<a name="194"><span class="lineNum">     194 </span>            : </a>
+<a name="195"><span class="lineNum">     195 </span>            : //+PLUMEDOC MCOLVARF LOCAL_Q6</a>
+<a name="196"><span class="lineNum">     196 </span>            : /*</a>
+<a name="197"><span class="lineNum">     197 </span>            : Calculate the local degree of order around an atoms by taking the average dot product between the q_6 vector on the central atom and the q_6 vector on the atoms in the first coordination sphere.</a>
+<a name="198"><span class="lineNum">     198 </span>            : </a>
+<a name="199"><span class="lineNum">     199 </span>            : The \ref Q6 command allows one to calculate one complex vectors for each of the atoms in your system that describe the degree of order in the coordination sphere</a>
+<a name="200"><span class="lineNum">     200 </span>            : around a particular atom. The difficulty with these vectors comes when combining the order parameters from all of the individual atoms/molecules so as to get a</a>
+<a name="201"><span class="lineNum">     201 </span>            : measure of the global degree of order for the system. The simplest way of doing this - calculating the average Steinhardt parameter - can be problematic. If one is</a>
+<a name="202"><span class="lineNum">     202 </span>            : examining nucleation say only the order parameters for those atoms in the nucleus will change significantly when the nucleus forms. The order parameters for the</a>
+<a name="203"><span class="lineNum">     203 </span>            : atoms in the surrounding liquid will remain pretty much the same. As such if one models a small nucleus embedded in a very large amount of solution/melt any</a>
+<a name="204"><span class="lineNum">     204 </span>            : change in the average order parameter will be negligible. Substantial changes in the value of this average can be observed in simulations of nucleation but only</a>
+<a name="205"><span class="lineNum">     205 </span>            : because the number of atoms is relatively small.</a>
+<a name="206"><span class="lineNum">     206 </span>            : </a>
+<a name="207"><span class="lineNum">     207 </span>            : When the average \ref Q6 parameter is used to bias the dynamics a problems</a>
+<a name="208"><span class="lineNum">     208 </span>            : can occur. These averaged coordinates cannot distinguish between the correct,</a>
+<a name="209"><span class="lineNum">     209 </span>            : single-nucleus pathway and a concerted pathway in which all the atoms rearrange</a>
+<a name="210"><span class="lineNum">     210 </span>            : themselves into their solid-like configuration simultaneously. This second type</a>
+<a name="211"><span class="lineNum">     211 </span>            : of pathway would be impossible in reality because there is a large entropic</a>
+<a name="212"><span class="lineNum">     212 </span>            : barrier that prevents concerted processes like this from happening.  However,</a>
+<a name="213"><span class="lineNum">     213 </span>            : in the finite sized systems that are commonly simulated this barrier is reduced</a>
+<a name="214"><span class="lineNum">     214 </span>            : substantially. As a result in simulations where average Steinhardt parameters</a>
+<a name="215"><span class="lineNum">     215 </span>            : are biased there are often quite dramatic system size effects</a>
+<a name="216"><span class="lineNum">     216 </span>            : </a>
+<a name="217"><span class="lineNum">     217 </span>            : If one wants to simulate nucleation using some form on</a>
+<a name="218"><span class="lineNum">     218 </span>            : biased dynamics what is really required is an order parameter that measures:</a>
+<a name="219"><span class="lineNum">     219 </span>            : </a>
+<a name="220"><span class="lineNum">     220 </span>            : - Whether or not the coordination spheres around atoms are ordered</a>
+<a name="221"><span class="lineNum">     221 </span>            : - Whether or not the atoms that are ordered are clustered together in a crystalline nucleus</a>
+<a name="222"><span class="lineNum">     222 </span>            : </a>
+<a name="223"><span class="lineNum">     223 </span>            : \ref LOCAL_AVERAGE and \ref NLINKS are variables that can be combined with the Steinhardt parameters allow to calculate variables that satisfy these requirements.</a>
+<a name="224"><span class="lineNum">     224 </span>            : LOCAL_Q6 is another variable that can be used in these sorts of calculations. The LOCAL_Q6 parameter for a particular atom is a number that measures the extent to</a>
+<a name="225"><span class="lineNum">     225 </span>            : which the orientation of the atoms in the first coordination sphere of an atom match the orientation of the central atom.  It does this by calculating the following</a>
+<a name="226"><span class="lineNum">     226 </span>            : quantity for each of the atoms in the system:</a>
+<a name="227"><span class="lineNum">     227 </span>            : </a>
+<a name="228"><span class="lineNum">     228 </span>            : \f[</a>
+<a name="229"><span class="lineNum">     229 </span>            :  s_i = \frac{ \sum_j \sigma( r_{ij} ) \sum_{m=-6}^6 q_{6m}^{*}(i)q_{6m}(j) }{ \sum_j \sigma( r_{ij} ) }</a>
+<a name="230"><span class="lineNum">     230 </span>            : \f]</a>
+<a name="231"><span class="lineNum">     231 </span>            : </a>
+<a name="232"><span class="lineNum">     232 </span>            : where \f$q_{6m}(i)\f$ and \f$q_{6m}(j)\f$ are the sixth order Steinhardt vectors calculated for atom \f$i\f$ and atom \f$j\f$ respectively and the asterisk denotes</a>
+<a name="233"><span class="lineNum">     233 </span>            : complex conjugation.  The function</a>
+<a name="234"><span class="lineNum">     234 </span>            : \f$\sigma( r_{ij} )\f$ is a \ref switchingfunction that acts on the distance between atoms \f$i\f$ and \f$j\f$.  The parameters of this function should be set</a>
+<a name="235"><span class="lineNum">     235 </span>            : so that it the function is equal to one when atom \f$j\f$ is in the first coordination sphere of atom \f$i\f$ and is zero otherwise.  The sum in the numerator</a>
+<a name="236"><span class="lineNum">     236 </span>            : of this expression is the dot product of the Steinhardt parameters for atoms \f$i\f$ and \f$j\f$ and thus measures the degree to which the orientations of these</a>
+<a name="237"><span class="lineNum">     237 </span>            : adjacent atoms is correlated.</a>
+<a name="238"><span class="lineNum">     238 </span>            : </a>
+<a name="239"><span class="lineNum">     239 </span>            : \par Examples</a>
+<a name="240"><span class="lineNum">     240 </span>            : </a>
+<a name="241"><span class="lineNum">     241 </span>            : The following command calculates the average value of the LOCAL_Q6 parameter for the 64 Lennard Jones atoms in the system under study and prints this</a>
+<a name="242"><span class="lineNum">     242 </span>            : quantity to a file called colvar.</a>
+<a name="243"><span class="lineNum">     243 </span>            : </a>
+<a name="244"><span class="lineNum">     244 </span>            : \plumedfile</a>
+<a name="245"><span class="lineNum">     245 </span>            : Q6 SPECIES=1-64 D_0=1.3 R_0=0.2 LABEL=q6</a>
+<a name="246"><span class="lineNum">     246 </span>            : LOCAL_Q6 SPECIES=q6 SWITCH={RATIONAL D_0=1.3 R_0=0.2} MEAN LABEL=lq6</a>
+<a name="247"><span class="lineNum">     247 </span>            : PRINT ARG=lq6.mean FILE=colvar</a>
+<a name="248"><span class="lineNum">     248 </span>            : \endplumedfile</a>
+<a name="249"><span class="lineNum">     249 </span>            : </a>
+<a name="250"><span class="lineNum">     250 </span>            : The following input calculates the distribution of LOCAL_Q6 parameters at any given time and outputs this information to a file.</a>
+<a name="251"><span class="lineNum">     251 </span>            : </a>
+<a name="252"><span class="lineNum">     252 </span>            : \plumedfile</a>
+<a name="253"><span class="lineNum">     253 </span>            : Q6 SPECIES=1-64 D_0=1.3 R_0=0.2 LABEL=q6</a>
+<a name="254"><span class="lineNum">     254 </span>            : LOCAL_Q6 SPECIES=q6 SWITCH={RATIONAL D_0=1.3 R_0=0.2} HISTOGRAM={GAUSSIAN LOWER=0.0 UPPER=1.0 NBINS=20 SMEAR=0.1} LABEL=lq6</a>
+<a name="255"><span class="lineNum">     255 </span>            : PRINT ARG=lq6.* FILE=colvar</a>
+<a name="256"><span class="lineNum">     256 </span>            : \endplumedfile</a>
+<a name="257"><span class="lineNum">     257 </span>            : </a>
+<a name="258"><span class="lineNum">     258 </span>            : The following calculates the LOCAL_Q6 parameters for atoms 1-5 only. For each of these atoms comparisons of the geometry of the coordination sphere</a>
+<a name="259"><span class="lineNum">     259 </span>            : are done with those of all the other atoms in the system.  The final quantity is the average and is outputted to a file</a>
+<a name="260"><span class="lineNum">     260 </span>            : </a>
+<a name="261"><span class="lineNum">     261 </span>            : \plumedfile</a>
+<a name="262"><span class="lineNum">     262 </span>            : Q6 SPECIESA=1-5 SPECIESB=1-64 D_0=1.3 R_0=0.2 LABEL=q6a</a>
+<a name="263"><span class="lineNum">     263 </span>            : Q6 SPECIESA=6-64 SPECIESB=1-64 D_0=1.3 R_0=0.2 LABEL=q6b</a>
+<a name="264"><span class="lineNum">     264 </span>            : </a>
+<a name="265"><span class="lineNum">     265 </span>            : LOCAL_Q6 SPECIES=q6a,q6b SWITCH={RATIONAL D_0=1.3 R_0=0.2} MEAN LOWMEM LABEL=w6</a>
+<a name="266"><span class="lineNum">     266 </span>            : PRINT ARG=w6.* FILE=colvar</a>
+<a name="267"><span class="lineNum">     267 </span>            : \endplumedfile</a>
+<a name="268"><span class="lineNum">     268 </span>            : </a>
+<a name="269"><span class="lineNum">     269 </span>            : */</a>
+<a name="270"><span class="lineNum">     270 </span>            : //+ENDPLUMEDOC</a>
+<a name="271"><span class="lineNum">     271 </span>            : </a>
+<a name="272"><span class="lineNum">     272 </span>            : class LocalSteinhardt : public ActionShortcut {</a>
+<a name="273"><span class="lineNum">     273 </span>            : private:</a>
+<a name="274"><span class="lineNum">     274 </span>            :   std::string getSymbol( const int&amp; m ) const ;</a>
+<a name="275"><span class="lineNum">     275 </span>            :   std::string getArgsForStack( const int&amp; l, const std::string&amp; lab ) const;</a>
+<a name="276"><span class="lineNum">     276 </span>            : public:</a>
+<a name="277"><span class="lineNum">     277 </span>            :   static void registerKeywords( Keywords&amp; keys );</a>
+<a name="278"><span class="lineNum">     278 </span>            :   explicit LocalSteinhardt(const ActionOptions&amp;);</a>
+<a name="279"><span class="lineNum">     279 </span>            : };</a>
+<a name="280"><span class="lineNum">     280 </span>            : </a>
+<a name="281"><span class="lineNum">     281 </span>            : PLUMED_REGISTER_ACTION(LocalSteinhardt,&quot;LOCAL_Q1&quot;)</a>
+<a name="282"><span class="lineNum">     282 </span>            : PLUMED_REGISTER_ACTION(LocalSteinhardt,&quot;LOCAL_Q3&quot;)</a>
+<a name="283"><span class="lineNum">     283 </span>            : PLUMED_REGISTER_ACTION(LocalSteinhardt,&quot;LOCAL_Q4&quot;)</a>
+<a name="284"><span class="lineNum">     284 </span>            : PLUMED_REGISTER_ACTION(LocalSteinhardt,&quot;LOCAL_Q6&quot;)</a>
+<a name="285"><span class="lineNum">     285 </span>            : </a>
+<a name="286"><span class="lineNum">     286 </span><span class="lineCov">         20 : void LocalSteinhardt::registerKeywords( Keywords&amp; keys ) {</span></a>
+<a name="287"><span class="lineNum">     287 </span><span class="lineCov">         20 :   ActionShortcut::registerKeywords( keys );</span></a>
+<a name="288"><span class="lineNum">     288 </span><span class="lineCov">         40 :   keys.add(&quot;optional&quot;,&quot;SPECIES&quot;,&quot;&quot;);</span></a>
+<a name="289"><span class="lineNum">     289 </span><span class="lineCov">         40 :   keys.add(&quot;optional&quot;,&quot;SPECIESA&quot;,&quot;&quot;);</span></a>
+<a name="290"><span class="lineNum">     290 </span><span class="lineCov">         40 :   keys.add(&quot;optional&quot;,&quot;SPECIESB&quot;,&quot;&quot;);</span></a>
+<a name="291"><span class="lineNum">     291 </span><span class="lineCov">         40 :   keys.add(&quot;optional&quot;,&quot;SWITCH&quot;,&quot;This keyword is used if you want to employ an alternative to the continuous swiching function defined above. &quot;</span></a>
+<a name="292"><span class="lineNum">     292 </span>            :            &quot;The following provides information on the \\ref switchingfunction that are available. &quot;</a>
+<a name="293"><span class="lineNum">     293 </span>            :            &quot;When this keyword is present you no longer need the NN, MM, D_0 and R_0 keywords.&quot;);</a>
+<a name="294"><span class="lineNum">     294 </span><span class="lineCov">         40 :   keys.addFlag(&quot;LOWMEM&quot;,false,&quot;this flag does nothing and is present only to ensure back-compatibility&quot;);</span></a>
+<a name="295"><span class="lineNum">     295 </span><span class="lineCov">         20 :   multicolvar::MultiColvarShortcuts::shortcutKeywords( keys );</span></a>
+<a name="296"><span class="lineNum">     296 </span><span class="lineCov">         60 :   keys.needsAction(&quot;CONTACT_MATRIX&quot;); keys.needsAction(&quot;MATRIX_PRODUCT&quot;); keys.needsAction(&quot;GROUP&quot;);</span></a>
+<a name="297"><span class="lineNum">     297 </span><span class="lineCov">         60 :   keys.needsAction(&quot;ONES&quot;); keys.needsAction(&quot;OUTER_PRODUCT&quot;); keys.needsAction(&quot;VSTACK&quot;);</span></a>
+<a name="298"><span class="lineNum">     298 </span><span class="lineCov">         60 :   keys.needsAction(&quot;CONCATENATE&quot;); keys.needsAction(&quot;CUSTOM&quot;); keys.needsAction(&quot;TRANSPOSE&quot;);</span></a>
+<a name="299"><span class="lineNum">     299 </span><span class="lineCov">         20 :   keys.needsAction(&quot;MATRIX_VECTOR_PRODUCT&quot;);</span></a>
+<a name="300"><span class="lineNum">     300 </span><span class="lineCov">         20 : }</span></a>
+<a name="301"><span class="lineNum">     301 </span>            : </a>
+<a name="302"><span class="lineNum">     302 </span><span class="lineCov">         98 : std::string LocalSteinhardt::getSymbol( const int&amp; m ) const {</span></a>
+<a name="303"><span class="lineNum">     303 </span><span class="lineCov">         98 :   if( m&lt;0 ) {</span></a>
+<a name="304"><span class="lineNum">     304 </span><span class="lineCov">         40 :     std::string num; Tools::convert( -1*m, num );</span></a>
+<a name="305"><span class="lineNum">     305 </span><span class="lineCov">         40 :     return &quot;n&quot; + num;</span></a>
+<a name="306"><span class="lineNum">     306 </span><span class="lineCov">         58 :   } else if( m&gt;0 ) {</span></a>
+<a name="307"><span class="lineNum">     307 </span><span class="lineCov">         49 :     std::string num; Tools::convert( m, num );</span></a>
+<a name="308"><span class="lineNum">     308 </span><span class="lineCov">         49 :     return &quot;p&quot; + num;</span></a>
+<a name="309"><span class="lineNum">     309 </span>            :   }</a>
+<a name="310"><span class="lineNum">     310 </span><span class="lineCov">          9 :   return &quot;0&quot;;</span></a>
+<a name="311"><span class="lineNum">     311 </span>            : }</a>
+<a name="312"><span class="lineNum">     312 </span>            : </a>
+<a name="313"><span class="lineNum">     313 </span><span class="lineCov">          9 : std::string LocalSteinhardt::getArgsForStack( const int&amp; l, const std::string&amp; sp_lab ) const {</span></a>
+<a name="314"><span class="lineNum">     314 </span><span class="lineCov">          9 :   std::string numstr; Tools::convert( l, numstr );</span></a>
+<a name="315"><span class="lineNum">     315 </span><span class="lineCov">         18 :   std::string data_mat = &quot; ARG=&quot; + sp_lab + &quot;_sp.rm-n&quot; + numstr + &quot;,&quot; + sp_lab + &quot;_sp.im-n&quot; + numstr;</span></a>
+<a name="316"><span class="lineNum">     316 </span><span class="lineCov">        107 :   for(int i=-l+1; i&lt;=l; ++i) {</span></a>
+<a name="317"><span class="lineNum">     317 </span><span class="lineCov">         98 :     numstr = getSymbol( i );</span></a>
+<a name="318"><span class="lineNum">     318 </span><span class="lineCov">        196 :     data_mat += &quot;,&quot; + sp_lab + &quot;_sp.rm-&quot; + numstr + &quot;,&quot; + sp_lab + &quot;_sp.im-&quot; + numstr;</span></a>
+<a name="319"><span class="lineNum">     319 </span>            :   }</a>
+<a name="320"><span class="lineNum">     320 </span><span class="lineCov">          9 :   return data_mat;</span></a>
+<a name="321"><span class="lineNum">     321 </span>            : }</a>
+<a name="322"><span class="lineNum">     322 </span>            : </a>
+<a name="323"><span class="lineNum">     323 </span><span class="lineCov">          7 : LocalSteinhardt::LocalSteinhardt(const ActionOptions&amp; ao):</span></a>
+<a name="324"><span class="lineNum">     324 </span>            :   Action(ao),</a>
+<a name="325"><span class="lineNum">     325 </span><span class="lineCov">          7 :   ActionShortcut(ao)</span></a>
+<a name="326"><span class="lineNum">     326 </span>            : {</a>
+<a name="327"><span class="lineNum">     327 </span><span class="lineCov">          7 :   bool lowmem; parseFlag(&quot;LOWMEM&quot;,lowmem);</span></a>
+<a name="328"><span class="lineNum">     328 </span><span class="lineCov">          7 :   if( lowmem ) warning(&quot;LOWMEM flag is deprecated and is no longer required for this action&quot;);</span></a>
+<a name="329"><span class="lineNum">     329 </span>            :   // Get the Q value</a>
+<a name="330"><span class="lineNum">     330 </span><span class="lineCov">         14 :   int l; Tools::convert( getName().substr(7), l);</span></a>
+<a name="331"><span class="lineNum">     331 </span>            :   // Create a vector filled with ones</a>
+<a name="332"><span class="lineNum">     332 </span><span class="lineCov">          7 :   std::string twolplusone; Tools::convert( 2*(2*l+1), twolplusone );</span></a>
+<a name="333"><span class="lineNum">     333 </span><span class="lineCov">         14 :   readInputLine( getShortcutLabel() + &quot;_uvec: ONES SIZE=&quot; + twolplusone );</span></a>
+<a name="334"><span class="lineNum">     334 </span>            :   // Read in species keyword</a>
+<a name="335"><span class="lineNum">     335 </span><span class="lineCov">         14 :   std::string sp_str; parse(&quot;SPECIES&quot;,sp_str);</span></a>
+<a name="336"><span class="lineNum">     336 </span><span class="lineCov">         14 :   std::string spa_str; parse(&quot;SPECIESA&quot;,spa_str);</span></a>
+<a name="337"><span class="lineNum">     337 </span><span class="lineCov">          7 :   if( sp_str.length()&gt;0 ) {</span></a>
+<a name="338"><span class="lineNum">     338 </span>            :     // Create a group with these atoms</a>
+<a name="339"><span class="lineNum">     339 </span><span class="lineCov">         12 :     readInputLine( getShortcutLabel() + &quot;_grp: GROUP ATOMS=&quot; + sp_str );</span></a>
+<a name="340"><span class="lineNum">     340 </span><span class="lineCov">          6 :     std::vector&lt;std::string&gt; sp_lab = Tools::getWords(sp_str, &quot;\t\n ,&quot;);</span></a>
+<a name="341"><span class="lineNum">     341 </span>            :     // This creates the stash to hold all the vectors</a>
+<a name="342"><span class="lineNum">     342 </span><span class="lineCov">          6 :     if( sp_lab.size()==1 ) {</span></a>
+<a name="343"><span class="lineNum">     343 </span>            :       // The lengths of all the vectors in a vector</a>
+<a name="344"><span class="lineNum">     344 </span><span class="lineCov">         12 :       readInputLine( getShortcutLabel() + &quot;_nmat: OUTER_PRODUCT ARG=&quot; + sp_lab[0] + &quot;_norm,&quot; + getShortcutLabel() + &quot;_uvec&quot;);</span></a>
+<a name="345"><span class="lineNum">     345 </span>            :       // The unormalised vectors</a>
+<a name="346"><span class="lineNum">     346 </span><span class="lineCov">         12 :       readInputLine( getShortcutLabel() + &quot;_uvecs: VSTACK&quot; + getArgsForStack( l, sp_lab[0] ) );</span></a>
+<a name="347"><span class="lineNum">     347 </span>            :     } else {</a>
+<a name="348"><span class="lineNum">     348 </span><span class="lineNoCov">          0 :       std::string len_vec = getShortcutLabel() + &quot;_mags: CONCATENATE ARG=&quot; + sp_lab[0] + &quot;_norm&quot;;</span></a>
+<a name="349"><span class="lineNum">     349 </span><span class="lineNoCov">          0 :       for(unsigned i=1; i&lt;sp_lab.size(); ++i) len_vec += &quot;,&quot; + sp_lab[i] + &quot;_norm&quot;;</span></a>
+<a name="350"><span class="lineNum">     350 </span>            :       // This is the vector that contains all the magnitudes</a>
+<a name="351"><span class="lineNum">     351 </span><span class="lineNoCov">          0 :       readInputLine( len_vec );</span></a>
+<a name="352"><span class="lineNum">     352 </span><span class="lineNoCov">          0 :       std::string concat_str = getShortcutLabel() + &quot;_uvecs: CONCATENATE&quot;;</span></a>
+<a name="353"><span class="lineNum">     353 </span><span class="lineNoCov">          0 :       for(unsigned i=0; i&lt;sp_lab.size(); ++i) {</span></a>
+<a name="354"><span class="lineNum">     354 </span><span class="lineNoCov">          0 :         std::string snum; Tools::convert( i+1, snum );</span></a>
+<a name="355"><span class="lineNum">     355 </span><span class="lineNoCov">          0 :         concat_str += &quot; MATRIX&quot; + snum + &quot;1=&quot; + getShortcutLabel() + &quot;_uvecs&quot; + snum;</span></a>
+<a name="356"><span class="lineNum">     356 </span><span class="lineNoCov">          0 :         readInputLine( getShortcutLabel() + &quot;_uvecs&quot; + snum + &quot;: VSTACK&quot; + getArgsForStack( l, sp_lab[i] ) );</span></a>
+<a name="357"><span class="lineNum">     357 </span>            :       }</a>
+<a name="358"><span class="lineNum">     358 </span>            :       // And the normalising matrix by taking the column vector of magnitudes and multiplying by the row vector of ones</a>
+<a name="359"><span class="lineNum">     359 </span><span class="lineNoCov">          0 :       readInputLine( getShortcutLabel() + &quot;_nmat: OUTER_PRODUCT ARG=&quot; + getShortcutLabel() + &quot;_mags,&quot; + getShortcutLabel() + &quot;_uvec&quot;);</span></a>
+<a name="360"><span class="lineNum">     360 </span>            :       // The unormalised vectors</a>
+<a name="361"><span class="lineNum">     361 </span><span class="lineNoCov">          0 :       readInputLine( concat_str );</span></a>
+<a name="362"><span class="lineNum">     362 </span>            :     }</a>
+<a name="363"><span class="lineNum">     363 </span>            :     // Now normalise all the vectors by doing Hadammard &quot;product&quot; with normalising matrix</a>
+<a name="364"><span class="lineNum">     364 </span><span class="lineCov">         12 :     readInputLine( getShortcutLabel() + &quot;_vecs: CUSTOM ARG=&quot; + getShortcutLabel() + &quot;_uvecs,&quot; + getShortcutLabel() + &quot;_nmat FUNC=x/y PERIODIC=NO&quot;);</span></a>
+<a name="365"><span class="lineNum">     365 </span>            :     // And transpose the matrix</a>
+<a name="366"><span class="lineNum">     366 </span><span class="lineCov">         12 :     readInputLine( getShortcutLabel() + &quot;_vecsT: TRANSPOSE ARG=&quot; + getShortcutLabel() + &quot;_vecs&quot; );</span></a>
+<a name="367"><span class="lineNum">     367 </span><span class="lineCov">         18 :     std::string sw_str; parse(&quot;SWITCH&quot;,sw_str); readInputLine( getShortcutLabel() + &quot;_cmap: CONTACT_MATRIX GROUP=&quot; + sp_str + &quot; SWITCH={&quot; + sw_str + &quot;}&quot;);</span></a>
+<a name="368"><span class="lineNum">     368 </span>            :     // And the matrix of dot products</a>
+<a name="369"><span class="lineNum">     369 </span><span class="lineCov">         12 :     readInputLine( getShortcutLabel() + &quot;_dpmat: MATRIX_PRODUCT ARG=&quot; + getShortcutLabel() + &quot;_vecs,&quot; + getShortcutLabel() + &quot;_vecsT&quot; );</span></a>
+<a name="370"><span class="lineNum">     370 </span><span class="lineCov">          7 :   } else if( spa_str.length()&gt;0 ) {</span></a>
+<a name="371"><span class="lineNum">     371 </span>            :     // Create a group with these atoms</a>
+<a name="372"><span class="lineNum">     372 </span><span class="lineCov">          2 :     readInputLine( getShortcutLabel() + &quot;_grp: GROUP ATOMS=&quot; + spa_str );</span></a>
+<a name="373"><span class="lineNum">     373 </span><span class="lineCov">          2 :     std::string spb_str; parse(&quot;SPECIESB&quot;,spb_str);</span></a>
+<a name="374"><span class="lineNum">     374 </span><span class="lineCov">          1 :     if( spb_str.length()==0 ) plumed_merror(&quot;need both SPECIESA and SPECIESB in input&quot;);</span></a>
+<a name="375"><span class="lineNum">     375 </span><span class="lineCov">          1 :     std::vector&lt;std::string&gt; sp_laba = Tools::getWords(spa_str, &quot;\t\n ,&quot;);</span></a>
+<a name="376"><span class="lineNum">     376 </span><span class="lineCov">          1 :     std::vector&lt;std::string&gt; sp_labb = Tools::getWords(spb_str, &quot;\t\n ,&quot;);</span></a>
+<a name="377"><span class="lineNum">     377 </span><span class="lineCov">          1 :     if( sp_laba.size()==1 ) {</span></a>
+<a name="378"><span class="lineNum">     378 </span>            :       // The matrix that is used for normalising</a>
+<a name="379"><span class="lineNum">     379 </span><span class="lineCov">          2 :       readInputLine( getShortcutLabel() + &quot;_nmatA: OUTER_PRODUCT ARG=&quot; +  sp_laba[0] + &quot;_norm,&quot; + getShortcutLabel() + &quot;_uvec&quot;);</span></a>
+<a name="380"><span class="lineNum">     380 </span>            :       // The unormalised vectors</a>
+<a name="381"><span class="lineNum">     381 </span><span class="lineCov">          2 :       readInputLine( getShortcutLabel() + &quot;_uvecsA: VSTACK&quot; + getArgsForStack( l, sp_laba[0] ) );</span></a>
+<a name="382"><span class="lineNum">     382 </span>            :     } else {</a>
+<a name="383"><span class="lineNum">     383 </span><span class="lineNoCov">          0 :       std::string len_vec = getShortcutLabel() + &quot;_magsA: CONCATENATE ARG=&quot; + sp_laba[0] + &quot;_norm&quot;;</span></a>
+<a name="384"><span class="lineNum">     384 </span><span class="lineNoCov">          0 :       for(unsigned i=1; i&lt;sp_laba.size(); ++i) len_vec += &quot;,&quot; + sp_laba[i] + &quot;_norm&quot;;</span></a>
+<a name="385"><span class="lineNum">     385 </span>            :       //  This is the vector that contains all the magnitudes</a>
+<a name="386"><span class="lineNum">     386 </span><span class="lineNoCov">          0 :       readInputLine( len_vec );</span></a>
+<a name="387"><span class="lineNum">     387 </span><span class="lineNoCov">          0 :       std::string concat_str = getShortcutLabel() + &quot;_uvecsA: CONCATENATE&quot;;</span></a>
+<a name="388"><span class="lineNum">     388 </span><span class="lineNoCov">          0 :       for(unsigned i=0; i&lt;sp_laba.size(); ++i) {</span></a>
+<a name="389"><span class="lineNum">     389 </span><span class="lineNoCov">          0 :         std::string snum; Tools::convert( i+1, snum );</span></a>
+<a name="390"><span class="lineNum">     390 </span><span class="lineNoCov">          0 :         concat_str += &quot; MATRIX&quot; + snum + &quot;1=&quot; + getShortcutLabel() + &quot;_uvecsA&quot; + snum;</span></a>
+<a name="391"><span class="lineNum">     391 </span><span class="lineNoCov">          0 :         readInputLine( getShortcutLabel() + &quot;_uvecsA&quot; + snum + &quot;: VSTACK&quot; + getArgsForStack( l, sp_laba[i] ) );</span></a>
+<a name="392"><span class="lineNum">     392 </span>            :       }</a>
+<a name="393"><span class="lineNum">     393 </span>            :       // And the normalising matrix by taking the column vector of magnitudes and multiplying by the row vector of ones</a>
+<a name="394"><span class="lineNum">     394 </span><span class="lineNoCov">          0 :       readInputLine( getShortcutLabel() + &quot;_nmatA: OUTER_PRODUCT ARG=&quot; + getShortcutLabel() + &quot;_magsA,&quot; + getShortcutLabel() + &quot;_uvec&quot;);</span></a>
+<a name="395"><span class="lineNum">     395 </span>            :       // The unormalised vector</a>
+<a name="396"><span class="lineNum">     396 </span><span class="lineNoCov">          0 :       readInputLine( concat_str );</span></a>
+<a name="397"><span class="lineNum">     397 </span>            :     }</a>
+<a name="398"><span class="lineNum">     398 </span>            :     // Now normalise all the vectors by doing Hadammard &quot;product&quot; with normalising matrix</a>
+<a name="399"><span class="lineNum">     399 </span><span class="lineCov">          2 :     readInputLine( getShortcutLabel() + &quot;_vecsA: CUSTOM ARG=&quot; + getShortcutLabel() + &quot;_uvecsA,&quot; + getShortcutLabel() + &quot;_nmatA FUNC=x/y PERIODIC=NO&quot;);</span></a>
+<a name="400"><span class="lineNum">     400 </span>            :     // Now do second matrix</a>
+<a name="401"><span class="lineNum">     401 </span><span class="lineCov">          1 :     if( sp_labb.size()==1 ) {</span></a>
+<a name="402"><span class="lineNum">     402 </span><span class="lineNoCov">          0 :       readInputLine( getShortcutLabel() + &quot;_nmatB: OUTER_PRODUCT ARG=&quot; +  sp_laba[0] + &quot;_norm,&quot; + getShortcutLabel() + &quot;_uvec&quot;);</span></a>
+<a name="403"><span class="lineNum">     403 </span><span class="lineNoCov">          0 :       readInputLine( getShortcutLabel() + &quot;_uvecsBT: VSTACK&quot; + getArgsForStack( l, sp_labb[0] ) );</span></a>
+<a name="404"><span class="lineNum">     404 </span><span class="lineNoCov">          0 :       readInputLine( getShortcutLabel() + &quot;_uvecsB: TRANSPOSE ARG=&quot; + getShortcutLabel() + &quot;_uvecsBT&quot;);</span></a>
+<a name="405"><span class="lineNum">     405 </span>            :     } else {</a>
+<a name="406"><span class="lineNum">     406 </span><span class="lineCov">          2 :       std::string len_vec = getShortcutLabel() + &quot;_magsB: CONCATENATE ARG=&quot; +  sp_labb[0] + &quot;_norm&quot;;</span></a>
+<a name="407"><span class="lineNum">     407 </span><span class="lineCov">          2 :       for(unsigned i=1; i&lt;sp_labb.size(); ++i) len_vec += &quot;,&quot; + sp_labb[i] + &quot;_norm&quot;;</span></a>
+<a name="408"><span class="lineNum">     408 </span>            :       //  This is the vector that contains all the magnitudes</a>
+<a name="409"><span class="lineNum">     409 </span><span class="lineCov">          1 :       readInputLine( len_vec );</span></a>
+<a name="410"><span class="lineNum">     410 </span><span class="lineCov">          1 :       std::string concat_str = getShortcutLabel() + &quot;_uvecsB: CONCATENATE&quot;;</span></a>
+<a name="411"><span class="lineNum">     411 </span><span class="lineCov">          3 :       for(unsigned i=0; i&lt;sp_labb.size(); ++i) {</span></a>
+<a name="412"><span class="lineNum">     412 </span><span class="lineCov">          2 :         std::string snum; Tools::convert( i+1, snum );</span></a>
+<a name="413"><span class="lineNum">     413 </span><span class="lineCov">          4 :         concat_str += &quot; MATRIX1&quot; + snum + &quot;=&quot; + getShortcutLabel() + &quot;_uvecsB&quot; + snum;</span></a>
+<a name="414"><span class="lineNum">     414 </span><span class="lineCov">          4 :         readInputLine( getShortcutLabel() + &quot;_uvecsBT&quot; + snum + &quot;: VSTACK&quot; + getArgsForStack( l, sp_labb[i] ) );</span></a>
+<a name="415"><span class="lineNum">     415 </span><span class="lineCov">          4 :         readInputLine( getShortcutLabel() + &quot;_uvecsB&quot; + snum + &quot;: TRANSPOSE ARG=&quot; + getShortcutLabel() + &quot;_uvecsBT&quot; + snum );</span></a>
+<a name="416"><span class="lineNum">     416 </span>            :       }</a>
+<a name="417"><span class="lineNum">     417 </span>            :       // And the normalising matrix</a>
+<a name="418"><span class="lineNum">     418 </span><span class="lineCov">          2 :       readInputLine( getShortcutLabel() + &quot;_nmatB: OUTER_PRODUCT ARG=&quot; + getShortcutLabel() + &quot;_uvec,&quot; + getShortcutLabel() + &quot;_magsB&quot;);</span></a>
+<a name="419"><span class="lineNum">     419 </span>            :       // The unormalised vectors</a>
+<a name="420"><span class="lineNum">     420 </span><span class="lineCov">          1 :       readInputLine( concat_str );</span></a>
+<a name="421"><span class="lineNum">     421 </span>            :     }</a>
+<a name="422"><span class="lineNum">     422 </span>            :     // Now normalise all the vectors by doing Hadammard &quot;product&quot; with normalising matrix</a>
+<a name="423"><span class="lineNum">     423 </span><span class="lineCov">          2 :     readInputLine( getShortcutLabel() + &quot;_vecsB: CUSTOM ARG=&quot; + getShortcutLabel() + &quot;_uvecsB,&quot; + getShortcutLabel() + &quot;_nmatB FUNC=x/y PERIODIC=NO&quot;);</span></a>
+<a name="424"><span class="lineNum">     424 </span><span class="lineCov">          3 :     std::string sw_str; parse(&quot;SWITCH&quot;,sw_str); readInputLine( getShortcutLabel() + &quot;_cmap: CONTACT_MATRIX GROUPA=&quot; + spa_str + &quot; GROUPB=&quot; + spb_str + &quot; SWITCH={&quot; + sw_str + &quot;}&quot;);</span></a>
+<a name="425"><span class="lineNum">     425 </span><span class="lineCov">          2 :     readInputLine( getShortcutLabel() + &quot;_dpmat: MATRIX_PRODUCT ARG=&quot; + getShortcutLabel() + &quot;_vecsA,&quot; + getShortcutLabel() + &quot;_vecsB&quot; );</span></a>
+<a name="426"><span class="lineNum">     426 </span><span class="lineCov">          1 :   }</span></a>
+<a name="427"><span class="lineNum">     427 </span>            : </a>
+<a name="428"><span class="lineNum">     428 </span>            :   // Now create the product matrix</a>
+<a name="429"><span class="lineNum">     429 </span><span class="lineCov">         14 :   readInputLine( getShortcutLabel() + &quot;_prod: CUSTOM ARG=&quot; + getShortcutLabel() + &quot;_cmap,&quot; + getShortcutLabel() + &quot;_dpmat FUNC=x*y PERIODIC=NO&quot;);</span></a>
+<a name="430"><span class="lineNum">     430 </span>            :   // Now the sum of coordination numbers times the switching functions</a>
+<a name="431"><span class="lineNum">     431 </span><span class="lineCov">          7 :   ActionWithValue* av = plumed.getActionSet().selectWithLabel&lt;ActionWithValue*&gt;( getShortcutLabel() + &quot;_cmap&quot;);</span></a>
+<a name="432"><span class="lineNum">     432 </span><span class="lineCov">          7 :   plumed_assert( av &amp;&amp; av-&gt;getNumberOfComponents()&gt;0 &amp;&amp; (av-&gt;copyOutput(0))-&gt;getRank()==2 );</span></a>
+<a name="433"><span class="lineNum">     433 </span><span class="lineCov">          7 :   std::string size; Tools::convert( (av-&gt;copyOutput(0))-&gt;getShape()[1], size );</span></a>
+<a name="434"><span class="lineNum">     434 </span><span class="lineCov">         14 :   readInputLine( getShortcutLabel() + &quot;_ones: ONES SIZE=&quot; + size );</span></a>
+<a name="435"><span class="lineNum">     435 </span><span class="lineCov">         14 :   readInputLine( getShortcutLabel() + &quot;: MATRIX_VECTOR_PRODUCT ARG=&quot; + getShortcutLabel() +&quot;_prod,&quot; + getShortcutLabel() +&quot;_ones&quot;);</span></a>
+<a name="436"><span class="lineNum">     436 </span>            :   // And just the sum of the coordination numbers</a>
+<a name="437"><span class="lineNum">     437 </span><span class="lineCov">         14 :   readInputLine( getShortcutLabel() + &quot;_denom: MATRIX_VECTOR_PRODUCT ARG=&quot; + getShortcutLabel() + &quot;_cmap,&quot; + getShortcutLabel() +&quot;_ones&quot;);</span></a>
+<a name="438"><span class="lineNum">     438 </span>            :   // And matheval to get the final quantity</a>
+<a name="439"><span class="lineNum">     439 </span><span class="lineCov">         14 :   readInputLine( getShortcutLabel() + &quot;_av: CUSTOM ARG=&quot; + getShortcutLabel() + &quot;,&quot; + getShortcutLabel() + &quot;_denom FUNC=x/y PERIODIC=NO&quot;);</span></a>
+<a name="440"><span class="lineNum">     440 </span>            :   // And this expands everything</a>
+<a name="441"><span class="lineNum">     441 </span><span class="lineCov">         14 :   multicolvar::MultiColvarShortcuts::expandFunctions( getShortcutLabel(), getShortcutLabel() + &quot;_av&quot;, &quot;&quot;, this );</span></a>
+<a name="442"><span class="lineNum">     442 </span><span class="lineCov">          7 : }</span></a>
+<a name="443"><span class="lineNum">     443 </span>            : </a>
+<a name="444"><span class="lineNum">     444 </span>            : }</a>
+<a name="445"><span class="lineNum">     445 </span>            : }</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="https://github.com/linux-test-project/lcov" target="_parent">LCOV version 1.16</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
