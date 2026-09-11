@@ -1,0 +1,752 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - core/DomainDecomposition.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">core</a> - DomainDecomposition.cpp<span style="font-size: 80%;"> (source / <a href="DomainDecomposition.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">345</td>
+            <td class="headerCovTableEntry">360</td>
+            <td class="headerCovTableEntryHi">95.8 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2026-09-11 11:12:29</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">32</td>
+            <td class="headerCovTableEntry">33</td>
+            <td class="headerCovTableEntryHi">97.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<a name="2"><span class="lineNum">       2 </span>            :    Copyright (c) 2017-2023 The plumed team</a>
+<a name="3"><span class="lineNum">       3 </span>            :    (see the PEOPLE file at the root of the distribution for a list of names)</a>
+<a name="4"><span class="lineNum">       4 </span>            : </a>
+<a name="5"><span class="lineNum">       5 </span>            :    See http://www.plumed.org for more information.</a>
+<a name="6"><span class="lineNum">       6 </span>            : </a>
+<a name="7"><span class="lineNum">       7 </span>            :    This file is part of plumed, version 2.</a>
+<a name="8"><span class="lineNum">       8 </span>            : </a>
+<a name="9"><span class="lineNum">       9 </span>            :    plumed is free software: you can redistribute it and/or modify</a>
+<a name="10"><span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by</a>
+<a name="11"><span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or</a>
+<a name="12"><span class="lineNum">      12 </span>            :    (at your option) any later version.</a>
+<a name="13"><span class="lineNum">      13 </span>            : </a>
+<a name="14"><span class="lineNum">      14 </span>            :    plumed is distributed in the hope that it will be useful,</a>
+<a name="15"><span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of</a>
+<a name="16"><span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</a>
+<a name="17"><span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.</a>
+<a name="18"><span class="lineNum">      18 </span>            : </a>
+<a name="19"><span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License</a>
+<a name="20"><span class="lineNum">      20 </span>            :    along with plumed.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
+<a name="21"><span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */</a>
+<a name="22"><span class="lineNum">      22 </span>            : #include &quot;DomainDecomposition.h&quot;</a>
+<a name="23"><span class="lineNum">      23 </span>            : #include &quot;ActionToPutData.h&quot;</a>
+<a name="24"><span class="lineNum">      24 </span>            : #include &quot;ActionAtomistic.h&quot;</a>
+<a name="25"><span class="lineNum">      25 </span>            : #include &quot;ActionRegister.h&quot;</a>
+<a name="26"><span class="lineNum">      26 </span>            : #include &quot;PlumedMain.h&quot;</a>
+<a name="27"><span class="lineNum">      27 </span>            : #include &quot;ActionSet.h&quot;</a>
+<a name="28"><span class="lineNum">      28 </span>            : </a>
+<a name="29"><span class="lineNum">      29 </span>            : #include &quot;small_vector/small_vector.h&quot;</a>
+<a name="30"><span class="lineNum">      30 </span>            : #include &quot;tools/MergeVectorTools.h&quot;</a>
+<a name="31"><span class="lineNum">      31 </span>            : </a>
+<a name="32"><span class="lineNum">      32 </span>            : //+PLUMEDOC ANALYSIS DOMAIN_DECOMPOSITION</a>
+<a name="33"><span class="lineNum">      33 </span>            : /*</a>
+<a name="34"><span class="lineNum">      34 </span>            : Pass domain decomposed properties of atoms to PLUMED</a>
+<a name="35"><span class="lineNum">      35 </span>            : </a>
+<a name="36"><span class="lineNum">      36 </span>            : \par Examples</a>
+<a name="37"><span class="lineNum">      37 </span>            : </a>
+<a name="38"><span class="lineNum">      38 </span>            : */</a>
+<a name="39"><span class="lineNum">      39 </span>            : //+ENDPLUMEDOC</a>
+<a name="40"><span class="lineNum">      40 </span>            : </a>
+<a name="41"><span class="lineNum">      41 </span>            : namespace PLMD {</a>
+<a name="42"><span class="lineNum">      42 </span>            : </a>
+<a name="43"><span class="lineNum">      43 </span>            : namespace {</a>
+<a name="44"><span class="lineNum">      44 </span>            : </a>
+<a name="45"><span class="lineNum">      45 </span>            : enum class Option {automatic, no, yes };</a>
+<a name="46"><span class="lineNum">      46 </span>            : </a>
+<a name="47"><span class="lineNum">      47 </span><span class="lineCov">        757 : Option interpretEnvString(const char* env,const char* str) {</span></a>
+<a name="48"><span class="lineNum">      48 </span><span class="lineCov">        757 :   if(!str) {</span></a>
+<a name="49"><span class="lineNum">      49 </span>            :     return Option::automatic;</a>
+<a name="50"><span class="lineNum">      50 </span>            :   }</a>
+<a name="51"><span class="lineNum">      51 </span><span class="lineNoCov">          0 :   if(!std::strcmp(str,&quot;yes&quot;)) {</span></a>
+<a name="52"><span class="lineNum">      52 </span>            :     return Option::yes;</a>
+<a name="53"><span class="lineNum">      53 </span>            :   }</a>
+<a name="54"><span class="lineNum">      54 </span><span class="lineNoCov">          0 :   if(!std::strcmp(str,&quot;no&quot;)) {</span></a>
+<a name="55"><span class="lineNum">      55 </span>            :     return Option::no;</a>
+<a name="56"><span class="lineNum">      56 </span>            :   }</a>
+<a name="57"><span class="lineNum">      57 </span><span class="lineNoCov">          0 :   if(!std::strcmp(str,&quot;auto&quot;)) {</span></a>
+<a name="58"><span class="lineNum">      58 </span>            :     return Option::automatic;</a>
+<a name="59"><span class="lineNum">      59 </span>            :   }</a>
+<a name="60"><span class="lineNum">      60 </span><span class="lineNoCov">          0 :   plumed_error()&lt;&lt;&quot;Cannot understand env var &quot;&lt;&lt;env&lt;&lt;&quot;\nPossible values: yes/no/auto\nActual value: &quot;&lt;&lt;str;</span></a>
+<a name="61"><span class="lineNum">      61 </span>            : }</a>
+<a name="62"><span class="lineNum">      62 </span>            : </a>
+<a name="63"><span class="lineNum">      63 </span>            : /// Use unique list of atoms to manipulate forces and positions.</a>
+<a name="64"><span class="lineNum">      64 </span>            : /// A unique list of atoms is used to manipulate forces and positions in MPI parallel runs.</a>
+<a name="65"><span class="lineNum">      65 </span>            : /// In serial runs, this is done if convenient. The code currently contain</a>
+<a name="66"><span class="lineNum">      66 </span>            : /// some heuristic to decide if the unique list should be used or not.</a>
+<a name="67"><span class="lineNum">      67 </span>            : /// An env var can be used to override this decision.</a>
+<a name="68"><span class="lineNum">      68 </span>            : /// export PLUMED_FORCE_UNIQUE=yes  # enforce using the unique list in serial runs</a>
+<a name="69"><span class="lineNum">      69 </span>            : /// export PLUMED_FORCE_UNIQUE=no   # enforce not using the unique list in serial runs</a>
+<a name="70"><span class="lineNum">      70 </span>            : /// export PLUMED_FORCE_UNIQUE=auto # choose heuristically</a>
+<a name="71"><span class="lineNum">      71 </span>            : /// default: auto</a>
+<a name="72"><span class="lineNum">      72 </span><span class="lineCov">      72014 : Option getenvForceUnique() {</span></a>
+<a name="73"><span class="lineNum">      73 </span>            :   static const char* name=&quot;PLUMED_FORCE_UNIQUE&quot;;</a>
+<a name="74"><span class="lineNum">      74 </span><span class="lineCov">      72014 :   static const auto opt = interpretEnvString(name,std::getenv(name));</span></a>
+<a name="75"><span class="lineNum">      75 </span><span class="lineCov">      72014 :   return opt;</span></a>
+<a name="76"><span class="lineNum">      76 </span>            : }</a>
+<a name="77"><span class="lineNum">      77 </span>            : </a>
+<a name="78"><span class="lineNum">      78 </span>            : }</a>
+<a name="79"><span class="lineNum">      79 </span>            : </a>
+<a name="80"><span class="lineNum">      80 </span>            : PLUMED_REGISTER_ACTION(DomainDecomposition,&quot;DOMAIN_DECOMPOSITION&quot;)</a>
+<a name="81"><span class="lineNum">      81 </span>            : </a>
+<a name="82"><span class="lineNum">      82 </span><span class="lineCov">        402 : void DomainDecomposition::DomainComms::enable(Communicator&amp; c) {</span></a>
+<a name="83"><span class="lineNum">      83 </span><span class="lineCov">        402 :   on=true;</span></a>
+<a name="84"><span class="lineNum">      84 </span><span class="lineCov">        402 :   Set_comm(c.Get_comm());</span></a>
+<a name="85"><span class="lineNum">      85 </span><span class="lineCov">        402 :   async=Get_size()&lt;10;</span></a>
+<a name="86"><span class="lineNum">      86 </span><span class="lineCov">        402 :   if(std::getenv(&quot;PLUMED_ASYNC_SHARE&quot;)) {</span></a>
+<a name="87"><span class="lineNum">      87 </span><span class="lineCov">          4 :     std::string s(std::getenv(&quot;PLUMED_ASYNC_SHARE&quot;));</span></a>
+<a name="88"><span class="lineNum">      88 </span><span class="lineCov">          4 :     if(s==&quot;yes&quot;) {</span></a>
+<a name="89"><span class="lineNum">      89 </span><span class="lineNoCov">          0 :       async=true;</span></a>
+<a name="90"><span class="lineNum">      90 </span><span class="lineCov">          4 :     } else if(s==&quot;no&quot;) {</span></a>
+<a name="91"><span class="lineNum">      91 </span><span class="lineCov">          4 :       async=false;</span></a>
+<a name="92"><span class="lineNum">      92 </span>            :     } else {</a>
+<a name="93"><span class="lineNum">      93 </span><span class="lineNoCov">          0 :       plumed_merror(&quot;PLUMED_ASYNC_SHARE variable is set to &quot; + s + &quot;; should be yes or no&quot;);</span></a>
+<a name="94"><span class="lineNum">      94 </span>            :     }</a>
+<a name="95"><span class="lineNum">      95 </span>            :   }</a>
+<a name="96"><span class="lineNum">      96 </span><span class="lineCov">        402 : }</span></a>
+<a name="97"><span class="lineNum">      97 </span>            : </a>
+<a name="98"><span class="lineNum">      98 </span><span class="lineCov">       1232 : void DomainDecomposition::registerKeywords(Keywords&amp; keys) {</span></a>
+<a name="99"><span class="lineNum">      99 </span><span class="lineCov">       1232 :   ActionForInterface::registerKeywords( keys );</span></a>
+<a name="100"><span class="lineNum">     100 </span><span class="lineCov">       1232 :   keys.remove(&quot;ROLE&quot;);</span></a>
+<a name="101"><span class="lineNum">     101 </span><span class="lineCov">       2464 :   keys.add(&quot;compulsory&quot;,&quot;NATOMS&quot;,&quot;the number of atoms across all the domains&quot;);</span></a>
+<a name="102"><span class="lineNum">     102 </span><span class="lineCov">       2464 :   keys.add(&quot;numbered&quot;,&quot;VALUE&quot;,&quot;value to create for the domain decomposition&quot;);</span></a>
+<a name="103"><span class="lineNum">     103 </span><span class="lineCov">       2464 :   keys.add(&quot;numbered&quot;,&quot;UNIT&quot;,&quot;unit of the ith value that is being passed through the domain decomposition&quot;);</span></a>
+<a name="104"><span class="lineNum">     104 </span><span class="lineCov">       2464 :   keys.add(&quot;numbered&quot;,&quot;CONSTANT&quot;,&quot;is the ith value that is being passed through the domain decomposition constant&quot;);</span></a>
+<a name="105"><span class="lineNum">     105 </span><span class="lineCov">       2464 :   keys.add(&quot;numbered&quot;,&quot;PERIODIC&quot;,&quot;if the value being passed to plumed is periodic then you should specify the periodicity of the function.  If the value &quot;</span></a>
+<a name="106"><span class="lineNum">     106 </span>            :            &quot;is not periodic you must state this using PERIODIC=NO.  Positions are passed with PERIODIC=NO even though special methods are used &quot;</a>
+<a name="107"><span class="lineNum">     107 </span>            :            &quot;to deal with pbc&quot;);</a>
+<a name="108"><span class="lineNum">     108 </span><span class="lineCov">       2464 :   keys.add(&quot;numbered&quot;,&quot;ROLE&quot;,&quot;Get the role this value plays in the code can be x/y/z/m/q to signify that this is x, y, z positions of atoms or masses or charges of atoms&quot;);</span></a>
+<a name="109"><span class="lineNum">     109 </span><span class="lineCov">       2464 :   keys.add(&quot;compulsory&quot;,&quot;PBCLABEL&quot;,&quot;Box&quot;,&quot;the label to use for the PBC action that will be created&quot;);</span></a>
+<a name="110"><span class="lineNum">     110 </span><span class="lineCov">       1232 :   keys.setValueDescription(&quot;the domain that each atom is within&quot;);</span></a>
+<a name="111"><span class="lineNum">     111 </span><span class="lineCov">       1232 : }</span></a>
+<a name="112"><span class="lineNum">     112 </span>            : </a>
+<a name="113"><span class="lineNum">     113 </span><span class="lineCov">       1228 : DomainDecomposition::DomainDecomposition(const ActionOptions&amp;ao):</span></a>
+<a name="114"><span class="lineNum">     114 </span>            :   Action(ao),</a>
+<a name="115"><span class="lineNum">     115 </span>            :   ActionForInterface(ao),</a>
+<a name="116"><span class="lineNum">     116 </span><span class="lineCov">       1228 :   ddStep(0),</span></a>
+<a name="117"><span class="lineNum">     117 </span><span class="lineCov">       1228 :   shuffledAtoms(0),</span></a>
+<a name="118"><span class="lineNum">     118 </span><span class="lineCov">       1228 :   asyncSent(false),</span></a>
+<a name="119"><span class="lineNum">     119 </span><span class="lineCov">       1228 :   unique_serial(false) {</span></a>
+<a name="120"><span class="lineNum">     120 </span>            :   // Read in the number of atoms</a>
+<a name="121"><span class="lineNum">     121 </span>            :   int natoms;</a>
+<a name="122"><span class="lineNum">     122 </span><span class="lineCov">       2456 :   parse(&quot;NATOMS&quot;,natoms);</span></a>
+<a name="123"><span class="lineNum">     123 </span>            :   std::string str_natoms;</a>
+<a name="124"><span class="lineNum">     124 </span><span class="lineCov">       1228 :   Tools::convert( natoms, str_natoms );</span></a>
+<a name="125"><span class="lineNum">     125 </span>            :   // Setup the gat index</a>
+<a name="126"><span class="lineNum">     126 </span><span class="lineCov">       1228 :   gatindex.resize(natoms);</span></a>
+<a name="127"><span class="lineNum">     127 </span><span class="lineCov">    9202736 :   for(unsigned i=0; i&lt;gatindex.size(); i++) {</span></a>
+<a name="128"><span class="lineNum">     128 </span><span class="lineCov">    9201508 :     gatindex[i]=i;</span></a>
+<a name="129"><span class="lineNum">     129 </span>            :   }</a>
+<a name="130"><span class="lineNum">     130 </span>            :   // Now read in the values we are creating here</a>
+<a name="131"><span class="lineNum">     131 </span><span class="lineCov">       6140 :   for(unsigned i=1;; ++i) {</span></a>
+<a name="132"><span class="lineNum">     132 </span>            :     std::string valname;</a>
+<a name="133"><span class="lineNum">     133 </span><span class="lineCov">      14736 :     if( !parseNumbered(&quot;VALUE&quot;,i,valname) ) {</span></a>
+<a name="134"><span class="lineNum">     134 </span>            :       break;</a>
+<a name="135"><span class="lineNum">     135 </span>            :     }</a>
+<a name="136"><span class="lineNum">     136 </span>            :     std::string unit;</a>
+<a name="137"><span class="lineNum">     137 </span><span class="lineCov">      12280 :     parseNumbered(&quot;UNIT&quot;,i,unit);</span></a>
+<a name="138"><span class="lineNum">     138 </span>            :     std::string constant;</a>
+<a name="139"><span class="lineNum">     139 </span><span class="lineCov">      12280 :     parseNumbered(&quot;CONSTANT&quot;,i,constant);</span></a>
+<a name="140"><span class="lineNum">     140 </span>            :     std::string period;</a>
+<a name="141"><span class="lineNum">     141 </span><span class="lineCov">      12280 :     parseNumbered(&quot;PERIODIC&quot;,i,period);</span></a>
+<a name="142"><span class="lineNum">     142 </span>            :     std::string role;</a>
+<a name="143"><span class="lineNum">     143 </span><span class="lineCov">      12280 :     parseNumbered(&quot;ROLE&quot;,i,role);</span></a>
+<a name="144"><span class="lineNum">     144 </span><span class="lineCov">       6140 :     if( constant==&quot;True&quot;) {</span></a>
+<a name="145"><span class="lineNum">     145 </span><span class="lineCov">       4912 :       plumed.readInputLine( valname + &quot;: PUT FROM_DOMAINS CONSTANT SHAPE=&quot; + str_natoms + &quot; UNIT=&quot; + unit + &quot; PERIODIC=&quot; + period + &quot; ROLE=&quot; + role, true );</span></a>
+<a name="146"><span class="lineNum">     146 </span><span class="lineCov">       3684 :     } else if( constant==&quot;False&quot;) {</span></a>
+<a name="147"><span class="lineNum">     147 </span><span class="lineCov">       7368 :       plumed.readInputLine( valname + &quot;: PUT FROM_DOMAINS SHAPE=&quot; + str_natoms + &quot; UNIT=&quot; + unit + &quot; PERIODIC=&quot; + period + &quot; ROLE=&quot; + role, true );</span></a>
+<a name="148"><span class="lineNum">     148 </span>            :     } else {</a>
+<a name="149"><span class="lineNum">     149 </span><span class="lineNoCov">          0 :       plumed_merror(&quot;missing information on whether value is constant&quot;);</span></a>
+<a name="150"><span class="lineNum">     150 </span>            :     }</a>
+<a name="151"><span class="lineNum">     151 </span>            :     // And save the list of values that are set from here</a>
+<a name="152"><span class="lineNum">     152 </span><span class="lineCov">       6140 :     ActionToPutData* ap=plumed.getActionSet().selectWithLabel&lt;ActionToPutData*&gt;(valname);</span></a>
+<a name="153"><span class="lineNum">     153 </span><span class="lineCov">       6140 :     ap-&gt;addDependency( this );</span></a>
+<a name="154"><span class="lineNum">     154 </span><span class="lineCov">       6140 :     inputs.push_back( ap );</span></a>
+<a name="155"><span class="lineNum">     155 </span><span class="lineCov">       6140 :   }</span></a>
+<a name="156"><span class="lineNum">     156 </span>            :   std::string pbclabel;</a>
+<a name="157"><span class="lineNum">     157 </span><span class="lineCov">       1228 :   parse(&quot;PBCLABEL&quot;,pbclabel);</span></a>
+<a name="158"><span class="lineNum">     158 </span><span class="lineCov">       1228 :   plumed.readInputLine(pbclabel + &quot;: PBC&quot;,true);</span></a>
+<a name="159"><span class="lineNum">     159 </span>            :   // Turn on the domain decomposition</a>
+<a name="160"><span class="lineNum">     160 </span><span class="lineCov">       1228 :   if( Communicator::initialized() ) {</span></a>
+<a name="161"><span class="lineNum">     161 </span><span class="lineCov">        401 :     Set_comm(comm);</span></a>
+<a name="162"><span class="lineNum">     162 </span>            :   }</a>
+<a name="163"><span class="lineNum">     163 </span><span class="lineCov">       1228 : }</span></a>
+<a name="164"><span class="lineNum">     164 </span>            : </a>
+<a name="165"><span class="lineNum">     165 </span><span class="lineCov">        402 : void DomainDecomposition::Set_comm(Communicator&amp; comm) {</span></a>
+<a name="166"><span class="lineNum">     166 </span><span class="lineCov">        402 :   dd.enable(comm);</span></a>
+<a name="167"><span class="lineNum">     167 </span><span class="lineCov">        402 :   setAtomsNlocal(getNumberOfAtoms());</span></a>
+<a name="168"><span class="lineNum">     168 </span><span class="lineCov">        402 :   setAtomsContiguous(0);</span></a>
+<a name="169"><span class="lineNum">     169 </span><span class="lineCov">        402 :   if( dd.Get_rank()!=0 ) {</span></a>
+<a name="170"><span class="lineNum">     170 </span><span class="lineCov">        145 :     ActionToPutData* ap=plumed.getActionSet().selectWithLabel&lt;ActionToPutData*&gt;(&quot;Box&quot;);</span></a>
+<a name="171"><span class="lineNum">     171 </span><span class="lineCov">        145 :     ap-&gt;noforce=true;</span></a>
+<a name="172"><span class="lineNum">     172 </span>            :   }</a>
+<a name="173"><span class="lineNum">     173 </span><span class="lineCov">        402 : }</span></a>
+<a name="174"><span class="lineNum">     174 </span>            : </a>
+<a name="175"><span class="lineNum">     175 </span><span class="lineCov">     559987 : unsigned DomainDecomposition::getNumberOfAtoms() const {</span></a>
+<a name="176"><span class="lineNum">     176 </span><span class="lineCov">     559987 :   if( inputs.size()==0 ) {</span></a>
+<a name="177"><span class="lineNum">     177 </span>            :     return 0;</a>
+<a name="178"><span class="lineNum">     178 </span>            :   }</a>
+<a name="179"><span class="lineNum">     179 </span><span class="lineCov">     559987 :   return (inputs[0]-&gt;getPntrToValue())-&gt;getShape()[0];</span></a>
+<a name="180"><span class="lineNum">     180 </span>            : }</a>
+<a name="181"><span class="lineNum">     181 </span>            : </a>
+<a name="182"><span class="lineNum">     182 </span><span class="lineCov">      74811 : void DomainDecomposition::resetForStepStart() {</span></a>
+<a name="183"><span class="lineNum">     183 </span><span class="lineCov">     448866 :   for(const auto &amp; pp : inputs) {</span></a>
+<a name="184"><span class="lineNum">     184 </span><span class="lineCov">     374055 :     pp-&gt;resetForStepStart();</span></a>
+<a name="185"><span class="lineNum">     185 </span>            :   }</a>
+<a name="186"><span class="lineNum">     186 </span><span class="lineCov">      74811 : }</span></a>
+<a name="187"><span class="lineNum">     187 </span>            : </a>
+<a name="188"><span class="lineNum">     188 </span><span class="lineCov">     365950 : void DomainDecomposition::setStart( const std::string&amp; name, const unsigned&amp; sss) {</span></a>
+<a name="189"><span class="lineNum">     189 </span><span class="lineCov">    1081471 :   for(const auto &amp; pp : inputs) {</span></a>
+<a name="190"><span class="lineNum">     190 </span><span class="lineCov">    1081471 :     if( pp-&gt;getLabel()==name ) {</span></a>
+<a name="191"><span class="lineNum">     191 </span><span class="lineCov">     365950 :       pp-&gt;setStart(name, sss);</span></a>
+<a name="192"><span class="lineNum">     192 </span><span class="lineCov">     365950 :       return;</span></a>
+<a name="193"><span class="lineNum">     193 </span>            :     }</a>
+<a name="194"><span class="lineNum">     194 </span>            :   }</a>
+<a name="195"><span class="lineNum">     195 </span><span class="lineNoCov">          0 :   plumed_error();</span></a>
+<a name="196"><span class="lineNum">     196 </span>            : }</a>
+<a name="197"><span class="lineNum">     197 </span>            : </a>
+<a name="198"><span class="lineNum">     198 </span><span class="lineCov">     365950 : void DomainDecomposition::setStride( const std::string&amp; name, const unsigned&amp; sss) {</span></a>
+<a name="199"><span class="lineNum">     199 </span><span class="lineCov">    1081471 :   for(const auto &amp; pp : inputs) {</span></a>
+<a name="200"><span class="lineNum">     200 </span><span class="lineCov">    1081471 :     if( pp-&gt;getLabel()==name ) {</span></a>
+<a name="201"><span class="lineNum">     201 </span><span class="lineCov">     365950 :       pp-&gt;setStride(name, sss);</span></a>
+<a name="202"><span class="lineNum">     202 </span><span class="lineCov">     365950 :       return;</span></a>
+<a name="203"><span class="lineNum">     203 </span>            :     }</a>
+<a name="204"><span class="lineNum">     204 </span>            :   }</a>
+<a name="205"><span class="lineNum">     205 </span><span class="lineNoCov">          0 :   plumed_error();</span></a>
+<a name="206"><span class="lineNum">     206 </span>            : }</a>
+<a name="207"><span class="lineNum">     207 </span>            : </a>
+<a name="208"><span class="lineNum">     208 </span><span class="lineCov">     369980 : bool DomainDecomposition::setValuePointer( const std::string&amp; name, const TypesafePtr &amp; val ) {</span></a>
+<a name="209"><span class="lineNum">     209 </span><span class="lineCov">     369980 :   wasset=true;  // Once the domain decomposition stuff is transferred moved the setting of this to where the g2l vector is setup</span></a>
+<a name="210"><span class="lineNum">     210 </span><span class="lineCov">    1105645 :   for(const auto &amp; pp : inputs) {</span></a>
+<a name="211"><span class="lineNum">     211 </span><span class="lineCov">    1101618 :     if( pp-&gt;setValuePointer( name, val ) ) {</span></a>
+<a name="212"><span class="lineNum">     212 </span>            :       return true;</a>
+<a name="213"><span class="lineNum">     213 </span>            :     }</a>
+<a name="214"><span class="lineNum">     214 </span>            :   }</a>
+<a name="215"><span class="lineNum">     215 </span>            :   return false;</a>
+<a name="216"><span class="lineNum">     216 </span>            : }</a>
+<a name="217"><span class="lineNum">     217 </span>            : </a>
+<a name="218"><span class="lineNum">     218 </span><span class="lineCov">     224427 : bool DomainDecomposition::setForcePointer( const std::string&amp; name, const TypesafePtr &amp; val ) {</span></a>
+<a name="219"><span class="lineNum">     219 </span><span class="lineCov">     448974 :   for(const auto &amp; pp : inputs) {</span></a>
+<a name="220"><span class="lineNum">     220 </span><span class="lineCov">     448944 :     if( pp-&gt;setForcePointer( name, val ) ) {</span></a>
+<a name="221"><span class="lineNum">     221 </span>            :       return true;</a>
+<a name="222"><span class="lineNum">     222 </span>            :     }</a>
+<a name="223"><span class="lineNum">     223 </span>            :   }</a>
+<a name="224"><span class="lineNum">     224 </span>            :   return false;</a>
+<a name="225"><span class="lineNum">     225 </span>            : }</a>
+<a name="226"><span class="lineNum">     226 </span>            : </a>
+<a name="227"><span class="lineNum">     227 </span><span class="lineCov">       1544 : void DomainDecomposition::setAtomsNlocal(int n) {</span></a>
+<a name="228"><span class="lineNum">     228 </span><span class="lineCov">       1544 :   gatindex.resize(n);</span></a>
+<a name="229"><span class="lineNum">     229 </span><span class="lineCov">       1544 :   g2l.resize(getNumberOfAtoms(),-1);</span></a>
+<a name="230"><span class="lineNum">     230 </span><span class="lineCov">       1544 :   if(dd) {</span></a>
+<a name="231"><span class="lineNum">     231 </span>            : // Since these vectors are sent with MPI by using e.g.</a>
+<a name="232"><span class="lineNum">     232 </span>            : // &amp;dd.positionsToBeSent[0]</a>
+<a name="233"><span class="lineNum">     233 </span>            : // we make sure they are non-zero-sized so as to</a>
+<a name="234"><span class="lineNum">     234 </span>            : // avoid errors when doing boundary check</a>
+<a name="235"><span class="lineNum">     235 </span><span class="lineCov">       1518 :     if(n==0) {</span></a>
+<a name="236"><span class="lineNum">     236 </span><span class="lineCov">          8 :       n++;</span></a>
+<a name="237"><span class="lineNum">     237 </span>            :     }</a>
+<a name="238"><span class="lineNum">     238 </span><span class="lineCov">       1518 :     std::size_t nvals = inputs.size(), natoms = getNumberOfAtoms();</span></a>
+<a name="239"><span class="lineNum">     239 </span><span class="lineCov">       1518 :     dd.positionsToBeSent.resize(n*nvals,0.0);</span></a>
+<a name="240"><span class="lineNum">     240 </span><span class="lineCov">       1518 :     dd.positionsToBeReceived.resize(natoms*nvals,0.0);</span></a>
+<a name="241"><span class="lineNum">     241 </span><span class="lineCov">       1518 :     dd.indexToBeSent.resize(n,0);</span></a>
+<a name="242"><span class="lineNum">     242 </span><span class="lineCov">       1518 :     dd.indexToBeReceived.resize(natoms,0);</span></a>
+<a name="243"><span class="lineNum">     243 </span>            :   }</a>
+<a name="244"><span class="lineNum">     244 </span><span class="lineCov">       1544 : }</span></a>
+<a name="245"><span class="lineNum">     245 </span>            : </a>
+<a name="246"><span class="lineNum">     246 </span><span class="lineCov">        990 : void DomainDecomposition::setAtomsGatindex(const TypesafePtr &amp; g,bool fortran) {</span></a>
+<a name="247"><span class="lineNum">     247 </span><span class="lineCov">        990 :   plumed_massert( g || gatindex.size()==0, &quot;NULL gatindex pointer with non-zero local atoms&quot;);</span></a>
+<a name="248"><span class="lineNum">     248 </span><span class="lineCov">        990 :   auto gg=g.get&lt;const int*&gt;({gatindex.size()});</span></a>
+<a name="249"><span class="lineNum">     249 </span><span class="lineCov">        990 :   ddStep=getStep();</span></a>
+<a name="250"><span class="lineNum">     250 </span><span class="lineCov">        990 :   if(fortran) {</span></a>
+<a name="251"><span class="lineNum">     251 </span><span class="lineCov">         22 :     for(unsigned i=0; i&lt;gatindex.size(); i++) {</span></a>
+<a name="252"><span class="lineNum">     252 </span><span class="lineCov">         20 :       gatindex[i]=gg[i]-1;</span></a>
+<a name="253"><span class="lineNum">     253 </span>            :     }</a>
+<a name="254"><span class="lineNum">     254 </span>            :   } else {</a>
+<a name="255"><span class="lineNum">     255 </span><span class="lineCov">      22140 :     for(unsigned i=0; i&lt;gatindex.size(); i++) {</span></a>
+<a name="256"><span class="lineNum">     256 </span><span class="lineCov">      21152 :       gatindex[i]=gg[i];</span></a>
+<a name="257"><span class="lineNum">     257 </span>            :     }</a>
+<a name="258"><span class="lineNum">     258 </span>            :   }</a>
+<a name="259"><span class="lineNum">     259 </span><span class="lineCov">      57552 :   for(unsigned i=0; i&lt;g2l.size(); i++) {</span></a>
+<a name="260"><span class="lineNum">     260 </span><span class="lineCov">      56562 :     g2l[i]=-1;</span></a>
+<a name="261"><span class="lineNum">     261 </span>            :   }</a>
+<a name="262"><span class="lineNum">     262 </span><span class="lineCov">        990 :   if( gatindex.size()==getNumberOfAtoms() ) {</span></a>
+<a name="263"><span class="lineNum">     263 </span><span class="lineCov">         11 :     shuffledAtoms=0;</span></a>
+<a name="264"><span class="lineNum">     264 </span><span class="lineCov">       1007 :     for(unsigned i=0; i&lt;gatindex.size(); i++) {</span></a>
+<a name="265"><span class="lineNum">     265 </span><span class="lineCov">        998 :       if( gatindex[i]!=i ) {</span></a>
+<a name="266"><span class="lineNum">     266 </span><span class="lineCov">          2 :         shuffledAtoms=1;</span></a>
+<a name="267"><span class="lineNum">     267 </span><span class="lineCov">          2 :         break;</span></a>
+<a name="268"><span class="lineNum">     268 </span>            :       }</a>
+<a name="269"><span class="lineNum">     269 </span>            :     }</a>
+<a name="270"><span class="lineNum">     270 </span>            :   } else {</a>
+<a name="271"><span class="lineNum">     271 </span><span class="lineCov">        979 :     shuffledAtoms=1;</span></a>
+<a name="272"><span class="lineNum">     272 </span>            :   }</a>
+<a name="273"><span class="lineNum">     273 </span><span class="lineCov">        990 :   if(dd) {</span></a>
+<a name="274"><span class="lineNum">     274 </span><span class="lineCov">        964 :     dd.Sum(shuffledAtoms);</span></a>
+<a name="275"><span class="lineNum">     275 </span>            :   }</a>
+<a name="276"><span class="lineNum">     276 </span><span class="lineCov">      22162 :   for(unsigned i=0; i&lt;gatindex.size(); i++) {</span></a>
+<a name="277"><span class="lineNum">     277 </span><span class="lineCov">      21172 :     g2l[gatindex[i]]=i;</span></a>
+<a name="278"><span class="lineNum">     278 </span>            :   }</a>
+<a name="279"><span class="lineNum">     279 </span>            :   // keep in unique only those atoms that are local</a>
+<a name="280"><span class="lineNum">     280 </span><span class="lineCov">       9908 :   for(unsigned i=0; i&lt;actions.size(); i++) {</span></a>
+<a name="281"><span class="lineNum">     281 </span><span class="lineCov">       8918 :     actions[i]-&gt;unique_local_needs_update=true;</span></a>
+<a name="282"><span class="lineNum">     282 </span>            :   }</a>
+<a name="283"><span class="lineNum">     283 </span>            :   unique.clear();</a>
+<a name="284"><span class="lineNum">     284 </span>            :   forced_unique.clear();</a>
+<a name="285"><span class="lineNum">     285 </span><span class="lineCov">        990 : }</span></a>
+<a name="286"><span class="lineNum">     286 </span>            : </a>
+<a name="287"><span class="lineNum">     287 </span><span class="lineCov">        554 : void DomainDecomposition::setAtomsContiguous(int start) {</span></a>
+<a name="288"><span class="lineNum">     288 </span><span class="lineCov">        554 :   ddStep=plumed.getStep();</span></a>
+<a name="289"><span class="lineNum">     289 </span><span class="lineCov">     218327 :   for(unsigned i=0; i&lt;gatindex.size(); i++) {</span></a>
+<a name="290"><span class="lineNum">     290 </span><span class="lineCov">     217773 :     gatindex[i]=start+i;</span></a>
+<a name="291"><span class="lineNum">     291 </span>            :   }</a>
+<a name="292"><span class="lineNum">     292 </span><span class="lineCov">     230639 :   for(unsigned i=0; i&lt;g2l.size(); i++) {</span></a>
+<a name="293"><span class="lineNum">     293 </span><span class="lineCov">     230085 :     g2l[i]=-1;</span></a>
+<a name="294"><span class="lineNum">     294 </span>            :   }</a>
+<a name="295"><span class="lineNum">     295 </span><span class="lineCov">     218327 :   for(unsigned i=0; i&lt;gatindex.size(); i++) {</span></a>
+<a name="296"><span class="lineNum">     296 </span><span class="lineCov">     217773 :     g2l[gatindex[i]]=i;</span></a>
+<a name="297"><span class="lineNum">     297 </span>            :   }</a>
+<a name="298"><span class="lineNum">     298 </span><span class="lineCov">        554 :   if(gatindex.size()&lt;getNumberOfAtoms()) {</span></a>
+<a name="299"><span class="lineNum">     299 </span><span class="lineCov">        152 :     shuffledAtoms=1;</span></a>
+<a name="300"><span class="lineNum">     300 </span>            :   }</a>
+<a name="301"><span class="lineNum">     301 </span>            :   // keep in unique only those atoms that are local</a>
+<a name="302"><span class="lineNum">     302 </span><span class="lineCov">        766 :   for(unsigned i=0; i&lt;actions.size(); i++) {</span></a>
+<a name="303"><span class="lineNum">     303 </span><span class="lineCov">        212 :     actions[i]-&gt;unique_local_needs_update=true;</span></a>
+<a name="304"><span class="lineNum">     304 </span>            :   }</a>
+<a name="305"><span class="lineNum">     305 </span>            :   unique.clear();</a>
+<a name="306"><span class="lineNum">     306 </span>            :   forced_unique.clear();</a>
+<a name="307"><span class="lineNum">     307 </span><span class="lineCov">        554 : }</span></a>
+<a name="308"><span class="lineNum">     308 </span>            : </a>
+<a name="309"><span class="lineNum">     309 </span><span class="lineCov">       1254 : void DomainDecomposition::shareAll() {</span></a>
+<a name="310"><span class="lineNum">     310 </span><span class="lineCov">       1254 :   unique.clear();</span></a>
+<a name="311"><span class="lineNum">     311 </span><span class="lineCov">       1254 :   forced_unique.clear();</span></a>
+<a name="312"><span class="lineNum">     312 </span><span class="lineCov">       1254 :   int natoms = getNumberOfAtoms();</span></a>
+<a name="313"><span class="lineNum">     313 </span><span class="lineCov">       1254 :   if( dd &amp;&amp; shuffledAtoms&gt;0 ) {</span></a>
+<a name="314"><span class="lineNum">     314 </span><span class="lineCov">      17616 :     for(int i=0; i&lt;natoms; ++i)</span></a>
+<a name="315"><span class="lineNum">     315 </span><span class="lineCov">      17430 :       if( g2l[i]&gt;=0 ) {</span></a>
+<a name="316"><span class="lineNum">     316 </span><span class="lineCov">       8003 :         unique.push_back( AtomNumber::index(i) );</span></a>
+<a name="317"><span class="lineNum">     317 </span>            :       }</a>
+<a name="318"><span class="lineNum">     318 </span>            :   } else {</a>
+<a name="319"><span class="lineNum">     319 </span><span class="lineCov">       1068 :     unique.resize(natoms);</span></a>
+<a name="320"><span class="lineNum">     320 </span><span class="lineCov">    5144701 :     for(int i=0; i&lt;natoms; i++) {</span></a>
+<a name="321"><span class="lineNum">     321 </span><span class="lineCov">    5143633 :       unique[i]=AtomNumber::index(i);</span></a>
+<a name="322"><span class="lineNum">     322 </span>            :     }</a>
+<a name="323"><span class="lineNum">     323 </span>            :   }</a>
+<a name="324"><span class="lineNum">     324 </span><span class="lineCov">       1254 :   forced_unique.resize( unique.size() );</span></a>
+<a name="325"><span class="lineNum">     325 </span><span class="lineCov">    5152890 :   for(unsigned i=0; i&lt;unique.size(); ++i) {</span></a>
+<a name="326"><span class="lineNum">     326 </span><span class="lineCov">    5151636 :     forced_unique[i] = unique[i];</span></a>
+<a name="327"><span class="lineNum">     327 </span>            :   }</a>
+<a name="328"><span class="lineNum">     328 </span><span class="lineCov">       1254 :   share(unique);</span></a>
+<a name="329"><span class="lineNum">     329 </span><span class="lineCov">       1238 : }</span></a>
+<a name="330"><span class="lineNum">     330 </span>            : </a>
+<a name="331"><span class="lineNum">     331 </span><span class="lineCov">      73154 : void DomainDecomposition::share() {</span></a>
+<a name="332"><span class="lineNum">     332 </span>            :   // We can no longer set the pointers after the share</a>
+<a name="333"><span class="lineNum">     333 </span>            :   bool atomsNeeded=false;</a>
+<a name="334"><span class="lineNum">     334 </span><span class="lineCov">     438924 :   for(const auto &amp; pp : inputs) {</span></a>
+<a name="335"><span class="lineNum">     335 </span><span class="lineCov">     365770 :     pp-&gt;share();</span></a>
+<a name="336"><span class="lineNum">     336 </span>            :   }</a>
+<a name="337"><span class="lineNum">     337 </span>            :   // At first step I scatter all the atoms so as to store their mass and charge</a>
+<a name="338"><span class="lineNum">     338 </span>            :   // Notice that this works with the assumption that charges and masses are</a>
+<a name="339"><span class="lineNum">     339 </span>            :   // not changing during the simulation!</a>
+<a name="340"><span class="lineNum">     340 </span><span class="lineCov">      73154 :   if( firststep ) {</span></a>
+<a name="341"><span class="lineNum">     341 </span><span class="lineCov">       1140 :     actions = plumed.getActionSet().select&lt;ActionAtomistic*&gt;();</span></a>
+<a name="342"><span class="lineNum">     342 </span><span class="lineCov">       1140 :     shareAll();</span></a>
+<a name="343"><span class="lineNum">     343 </span><span class="lineCov">       1124 :     return;</span></a>
+<a name="344"><span class="lineNum">     344 </span>            :   }</a>
+<a name="345"><span class="lineNum">     345 </span>            : </a>
+<a name="346"><span class="lineNum">     346 </span><span class="lineCov">      72014 :   if(getenvForceUnique()==Option::automatic) {</span></a>
+<a name="347"><span class="lineNum">     347 </span>            :     unsigned largest=0;</a>
+<a name="348"><span class="lineNum">     348 </span><span class="lineCov">     728350 :     for(unsigned i=0; i&lt;actions.size(); i++) {</span></a>
+<a name="349"><span class="lineNum">     349 </span><span class="lineCov">     656336 :       if(actions[i]-&gt;isActive()) {</span></a>
+<a name="350"><span class="lineNum">     350 </span>            :         auto l=actions[i]-&gt;getUnique().size();</a>
+<a name="351"><span class="lineNum">     351 </span><span class="lineCov">     451072 :         if(l&gt;largest) {</span></a>
+<a name="352"><span class="lineNum">     352 </span><span class="lineCov">      76459 :           largest=l;</span></a>
+<a name="353"><span class="lineNum">     353 </span>            :         }</a>
+<a name="354"><span class="lineNum">     354 </span>            :       }</a>
+<a name="355"><span class="lineNum">     355 </span>            :     }</a>
+<a name="356"><span class="lineNum">     356 </span><span class="lineCov">      72014 :     if(largest*2&lt;getNumberOfAtoms()) {</span></a>
+<a name="357"><span class="lineNum">     357 </span><span class="lineCov">      23651 :       unique_serial=true;</span></a>
+<a name="358"><span class="lineNum">     358 </span>            :     } else {</a>
+<a name="359"><span class="lineNum">     359 </span><span class="lineCov">      48363 :       unique_serial=false;</span></a>
+<a name="360"><span class="lineNum">     360 </span>            :     }</a>
+<a name="361"><span class="lineNum">     361 </span><span class="lineNoCov">          0 :   } else if(getenvForceUnique()==Option::yes) {</span></a>
+<a name="362"><span class="lineNum">     362 </span><span class="lineNoCov">          0 :     unique_serial=true;</span></a>
+<a name="363"><span class="lineNum">     363 </span><span class="lineNoCov">          0 :   } else if(getenvForceUnique()==Option::no) {</span></a>
+<a name="364"><span class="lineNum">     364 </span><span class="lineNoCov">          0 :     unique_serial=false;</span></a>
+<a name="365"><span class="lineNum">     365 </span>            :   } else {</a>
+<a name="366"><span class="lineNum">     366 </span><span class="lineNoCov">          0 :     plumed_error();</span></a>
+<a name="367"><span class="lineNum">     367 </span>            :   }</a>
+<a name="368"><span class="lineNum">     368 </span>            : </a>
+<a name="369"><span class="lineNum">     369 </span><span class="lineCov">      72014 :   if(unique_serial || !(int(gatindex.size())==getNumberOfAtoms() &amp;&amp; shuffledAtoms==0)) {</span></a>
+<a name="370"><span class="lineNum">     370 </span><span class="lineCov">     289095 :     for(unsigned i=0; i&lt;actions.size(); i++) {</span></a>
+<a name="371"><span class="lineNum">     371 </span><span class="lineCov">     265056 :       if( actions[i]-&gt;unique_local_needs_update ) {</span></a>
+<a name="372"><span class="lineNum">     372 </span><span class="lineCov">     265786 :         actions[i]-&gt;updateUniqueLocal( !(dd &amp;&amp; shuffledAtoms&gt;0), g2l );</span></a>
+<a name="373"><span class="lineNum">     373 </span>            :       }</a>
+<a name="374"><span class="lineNum">     374 </span>            :     }</a>
+<a name="375"><span class="lineNum">     375 </span>            :     // Now reset unique for the new step</a>
+<a name="376"><span class="lineNum">     376 </span>            :     gch::small_vector&lt;const std::vector&lt;AtomNumber&gt;*,32&gt; forced_vectors;</a>
+<a name="377"><span class="lineNum">     377 </span>            :     gch::small_vector&lt;const std::vector&lt;AtomNumber&gt;*,32&gt; nonforced_vectors;</a>
+<a name="378"><span class="lineNum">     378 </span>            :     forced_vectors.reserve(actions.size());</a>
+<a name="379"><span class="lineNum">     379 </span>            :     nonforced_vectors.reserve(actions.size());</a>
+<a name="380"><span class="lineNum">     380 </span><span class="lineCov">     289095 :     for(unsigned i=0; i&lt;actions.size(); i++) {</span></a>
+<a name="381"><span class="lineNum">     381 </span><span class="lineCov">     265056 :       if(actions[i]-&gt;isActive()) {</span></a>
+<a name="382"><span class="lineNum">     382 </span><span class="lineCov">     192035 :         if(!actions[i]-&gt;getUnique().empty()) {</span></a>
+<a name="383"><span class="lineNum">     383 </span>            :           // unique are the local atoms</a>
+<a name="384"><span class="lineNum">     384 </span><span class="lineCov">     106742 :           if( actions[i]-&gt;actionHasForces() ) {</span></a>
+<a name="385"><span class="lineNum">     385 </span><span class="lineCov">     191054 :             forced_vectors.push_back(&amp;actions[i]-&gt;getUniqueLocal());</span></a>
+<a name="386"><span class="lineNum">     386 </span>            :           } else {</a>
+<a name="387"><span class="lineNum">     387 </span><span class="lineCov">      22430 :             nonforced_vectors.push_back(&amp;actions[i]-&gt;getUniqueLocal());</span></a>
+<a name="388"><span class="lineNum">     388 </span>            :           }</a>
+<a name="389"><span class="lineNum">     389 </span>            :         }</a>
+<a name="390"><span class="lineNum">     390 </span>            :       }</a>
+<a name="391"><span class="lineNum">     391 </span>            :     }</a>
+<a name="392"><span class="lineNum">     392 </span><span class="lineCov">      24039 :     if( !(forced_vectors.empty() &amp;&amp; nonforced_vectors.empty()) ) {</span></a>
+<a name="393"><span class="lineNum">     393 </span>            :       atomsNeeded=true;</a>
+<a name="394"><span class="lineNum">     394 </span>            :     }</a>
+<a name="395"><span class="lineNum">     395 </span>            :     // Merge the atoms from the atoms that have a force on</a>
+<a name="396"><span class="lineNum">     396 </span><span class="lineCov">      24039 :     unique.clear();</span></a>
+<a name="397"><span class="lineNum">     397 </span><span class="lineCov">      24039 :     forced_unique.clear();</span></a>
+<a name="398"><span class="lineNum">     398 </span><span class="lineCov">      24039 :     mergeVectorTools::mergeSortedVectors(forced_vectors,forced_unique);</span></a>
+<a name="399"><span class="lineNum">     399 </span>            :     // Merge all the atoms</a>
+<a name="400"><span class="lineNum">     400 </span><span class="lineCov">      24039 :     nonforced_vectors.push_back( &amp;forced_unique );</span></a>
+<a name="401"><span class="lineNum">     401 </span><span class="lineCov">      24039 :     mergeVectorTools::mergeSortedVectors(nonforced_vectors,unique);</span></a>
+<a name="402"><span class="lineNum">     402 </span>            :   } else {</a>
+<a name="403"><span class="lineNum">     403 </span><span class="lineCov">     439255 :     for(unsigned i=0; i&lt;actions.size(); i++) {</span></a>
+<a name="404"><span class="lineNum">     404 </span><span class="lineCov">     391280 :       if(actions[i]-&gt;isActive()) {</span></a>
+<a name="405"><span class="lineNum">     405 </span><span class="lineCov">     259037 :         if(!actions[i]-&gt;getUnique().empty()) {</span></a>
+<a name="406"><span class="lineNum">     406 </span>            :           atomsNeeded=true;</a>
+<a name="407"><span class="lineNum">     407 </span>            :         }</a>
+<a name="408"><span class="lineNum">     408 </span>            :       }</a>
+<a name="409"><span class="lineNum">     409 </span>            :     }</a>
+<a name="410"><span class="lineNum">     410 </span>            :   }</a>
+<a name="411"><span class="lineNum">     411 </span>            : </a>
+<a name="412"><span class="lineNum">     412 </span>            :   // Now we retrieve the atom numbers we need</a>
+<a name="413"><span class="lineNum">     413 </span><span class="lineCov">      72014 :   if( atomsNeeded ) {</span></a>
+<a name="414"><span class="lineNum">     414 </span><span class="lineCov">      71309 :     share( unique );</span></a>
+<a name="415"><span class="lineNum">     415 </span>            :   }</a>
+<a name="416"><span class="lineNum">     416 </span>            : }</a>
+<a name="417"><span class="lineNum">     417 </span>            : </a>
+<a name="418"><span class="lineNum">     418 </span><span class="lineCov">      72563 : void DomainDecomposition::share(const std::vector&lt;AtomNumber&gt;&amp; unique) {</span></a>
+<a name="419"><span class="lineNum">     419 </span>            :   // This retrieves what values we need to get</a>
+<a name="420"><span class="lineNum">     420 </span>            :   int ndata=0;</a>
+<a name="421"><span class="lineNum">     421 </span>            :   std::vector&lt;Value*&gt; values_to_get;</a>
+<a name="422"><span class="lineNum">     422 </span><span class="lineCov">      72563 :   if(!(int(gatindex.size())==getNumberOfAtoms() &amp;&amp; shuffledAtoms==0)) {</span></a>
+<a name="423"><span class="lineNum">     423 </span><span class="lineCov">       2214 :     uniq_index.resize(unique.size());</span></a>
+<a name="424"><span class="lineNum">     424 </span><span class="lineCov">      32727 :     for(unsigned i=0; i&lt;unique.size(); i++) {</span></a>
+<a name="425"><span class="lineNum">     425 </span><span class="lineCov">      30513 :       uniq_index[i]=g2l[unique[i].index()];</span></a>
+<a name="426"><span class="lineNum">     426 </span>            :     }</a>
+<a name="427"><span class="lineNum">     427 </span><span class="lineCov">      13284 :     for(const auto &amp; ip : inputs) {</span></a>
+<a name="428"><span class="lineNum">     428 </span><span class="lineCov">      11070 :       if( (!ip-&gt;fixed || firststep) &amp;&amp; ip-&gt;wasset ) {</span></a>
+<a name="429"><span class="lineNum">     429 </span><span class="lineCov">       6788 :         (ip-&gt;mydata)-&gt;share_data( unique, uniq_index, ip-&gt;copyOutput(0) );</span></a>
+<a name="430"><span class="lineNum">     430 </span><span class="lineCov">       6788 :         values_to_get.push_back(ip-&gt;copyOutput(0));</span></a>
+<a name="431"><span class="lineNum">     431 </span><span class="lineCov">       6788 :         ndata++;</span></a>
+<a name="432"><span class="lineNum">     432 </span>            :       }</a>
+<a name="433"><span class="lineNum">     433 </span>            :     }</a>
+<a name="434"><span class="lineNum">     434 </span><span class="lineCov">      70349 :   } else if( unique_serial) {</span></a>
+<a name="435"><span class="lineNum">     435 </span><span class="lineCov">      21308 :     uniq_index.resize(unique.size());</span></a>
+<a name="436"><span class="lineNum">     436 </span><span class="lineCov">     801423 :     for(unsigned i=0; i&lt;unique.size(); i++) {</span></a>
+<a name="437"><span class="lineNum">     437 </span><span class="lineCov">     780115 :       uniq_index[i]=unique[i].index();</span></a>
+<a name="438"><span class="lineNum">     438 </span>            :     }</a>
+<a name="439"><span class="lineNum">     439 </span><span class="lineCov">     127848 :     for(const auto &amp; ip : inputs) {</span></a>
+<a name="440"><span class="lineNum">     440 </span><span class="lineCov">     106540 :       if( (!ip-&gt;fixed || firststep) &amp;&amp; ip-&gt;wasset ) {</span></a>
+<a name="441"><span class="lineNum">     441 </span><span class="lineCov">      63924 :         (ip-&gt;mydata)-&gt;share_data( unique, uniq_index, ip-&gt;copyOutput(0) );</span></a>
+<a name="442"><span class="lineNum">     442 </span><span class="lineCov">      63924 :         values_to_get.push_back(ip-&gt;copyOutput(0));</span></a>
+<a name="443"><span class="lineNum">     443 </span><span class="lineCov">      63924 :         ndata++;</span></a>
+<a name="444"><span class="lineNum">     444 </span>            :       }</a>
+<a name="445"><span class="lineNum">     445 </span>            :     }</a>
+<a name="446"><span class="lineNum">     446 </span>            :   } else {</a>
+<a name="447"><span class="lineNum">     447 </span>            : // faster version, which retrieves all atoms</a>
+<a name="448"><span class="lineNum">     448 </span><span class="lineCov">     294166 :     for(const auto &amp; ip : inputs) {</span></a>
+<a name="449"><span class="lineNum">     449 </span><span class="lineCov">     245141 :       if( (!ip-&gt;fixed || firststep) &amp;&amp; ip-&gt;wasset ) {</span></a>
+<a name="450"><span class="lineNum">     450 </span><span class="lineCov">     148970 :         (ip-&gt;mydata)-&gt;share_data( 0, getNumberOfAtoms(), ip-&gt;copyOutput(0) );</span></a>
+<a name="451"><span class="lineNum">     451 </span><span class="lineCov">     148954 :         values_to_get.push_back(ip-&gt;copyOutput(0));</span></a>
+<a name="452"><span class="lineNum">     452 </span><span class="lineCov">     148954 :         ndata++;</span></a>
+<a name="453"><span class="lineNum">     453 </span>            :       }</a>
+<a name="454"><span class="lineNum">     454 </span>            :     }</a>
+<a name="455"><span class="lineNum">     455 </span>            :   }</a>
+<a name="456"><span class="lineNum">     456 </span>            : </a>
+<a name="457"><span class="lineNum">     457 </span><span class="lineCov">      72547 :   if(dd &amp;&amp; shuffledAtoms&gt;0) {</span></a>
+<a name="458"><span class="lineNum">     458 </span><span class="lineCov">       2188 :     if(dd.async) {</span></a>
+<a name="459"><span class="lineNum">     459 </span><span class="lineCov">       9598 :       for(unsigned i=0; i&lt;dd.mpi_request_positions.size(); i++) {</span></a>
+<a name="460"><span class="lineNum">     460 </span><span class="lineCov">       7430 :         dd.mpi_request_positions[i].wait();</span></a>
+<a name="461"><span class="lineNum">     461 </span>            :       }</a>
+<a name="462"><span class="lineNum">     462 </span><span class="lineCov">       9598 :       for(unsigned i=0; i&lt;dd.mpi_request_index.size(); i++) {</span></a>
+<a name="463"><span class="lineNum">     463 </span><span class="lineCov">       7430 :         dd.mpi_request_index[i].wait();</span></a>
+<a name="464"><span class="lineNum">     464 </span>            :       }</a>
+<a name="465"><span class="lineNum">     465 </span>            :     }</a>
+<a name="466"><span class="lineNum">     466 </span>            : </a>
+<a name="467"><span class="lineNum">     467 </span><span class="lineCov">       2188 :     int count=0;</span></a>
+<a name="468"><span class="lineNum">     468 </span><span class="lineCov">      32623 :     for(const auto &amp; p : unique) {</span></a>
+<a name="469"><span class="lineNum">     469 </span><span class="lineCov">      30435 :       dd.indexToBeSent[count]=p.index();</span></a>
+<a name="470"><span class="lineNum">     470 </span>            :       int dpoint=0;</a>
+<a name="471"><span class="lineNum">     471 </span><span class="lineCov">     126694 :       for(unsigned i=0; i&lt;values_to_get.size(); ++i) {</span></a>
+<a name="472"><span class="lineNum">     472 </span><span class="lineCov">      96259 :         dd.positionsToBeSent[ndata*count+dpoint]=values_to_get[i]-&gt;get(p.index());</span></a>
+<a name="473"><span class="lineNum">     473 </span><span class="lineCov">      96259 :         dpoint++;</span></a>
+<a name="474"><span class="lineNum">     474 </span>            :       }</a>
+<a name="475"><span class="lineNum">     475 </span><span class="lineCov">      30435 :       count++;</span></a>
+<a name="476"><span class="lineNum">     476 </span>            :     }</a>
+<a name="477"><span class="lineNum">     477 </span>            : </a>
+<a name="478"><span class="lineNum">     478 </span><span class="lineCov">       2188 :     if(dd.async) {</span></a>
+<a name="479"><span class="lineNum">     479 </span><span class="lineCov">       2168 :       asyncSent=true;</span></a>
+<a name="480"><span class="lineNum">     480 </span><span class="lineCov">       2168 :       dd.mpi_request_positions.resize(dd.Get_size());</span></a>
+<a name="481"><span class="lineNum">     481 </span><span class="lineCov">       2168 :       dd.mpi_request_index.resize(dd.Get_size());</span></a>
+<a name="482"><span class="lineNum">     482 </span><span class="lineCov">       9802 :       for(int i=0; i&lt;dd.Get_size(); i++) {</span></a>
+<a name="483"><span class="lineNum">     483 </span><span class="lineCov">       7634 :         dd.mpi_request_index[i]=dd.Isend(&amp;dd.indexToBeSent[0],count,i,666);</span></a>
+<a name="484"><span class="lineNum">     484 </span><span class="lineCov">       7634 :         dd.mpi_request_positions[i]=dd.Isend(&amp;dd.positionsToBeSent[0],ndata*count,i,667);</span></a>
+<a name="485"><span class="lineNum">     485 </span>            :       }</a>
+<a name="486"><span class="lineNum">     486 </span>            :     } else {</a>
+<a name="487"><span class="lineNum">     487 </span><span class="lineCov">         20 :       const int n=(dd.Get_size());</span></a>
+<a name="488"><span class="lineNum">     488 </span><span class="lineCov">         36 :       std::vector&lt;int&gt; counts(n);</span></a>
+<a name="489"><span class="lineNum">     489 </span><span class="lineCov">         20 :       std::vector&lt;int&gt; displ(n);</span></a>
+<a name="490"><span class="lineNum">     490 </span><span class="lineCov">         20 :       std::vector&lt;int&gt; counts5(n);</span></a>
+<a name="491"><span class="lineNum">     491 </span><span class="lineCov">         20 :       std::vector&lt;int&gt; displ5(n);</span></a>
+<a name="492"><span class="lineNum">     492 </span><span class="lineCov">         20 :       dd.Allgather(count,counts);</span></a>
+<a name="493"><span class="lineNum">     493 </span><span class="lineCov">         20 :       displ[0]=0;</span></a>
+<a name="494"><span class="lineNum">     494 </span><span class="lineCov">         80 :       for(int i=1; i&lt;n; ++i) {</span></a>
+<a name="495"><span class="lineNum">     495 </span><span class="lineCov">         60 :         displ[i]=displ[i-1]+counts[i-1];</span></a>
+<a name="496"><span class="lineNum">     496 </span>            :       }</a>
+<a name="497"><span class="lineNum">     497 </span><span class="lineCov">        100 :       for(int i=0; i&lt;n; ++i) {</span></a>
+<a name="498"><span class="lineNum">     498 </span><span class="lineCov">         80 :         counts5[i]=counts[i]*ndata;</span></a>
+<a name="499"><span class="lineNum">     499 </span>            :       }</a>
+<a name="500"><span class="lineNum">     500 </span><span class="lineCov">        100 :       for(int i=0; i&lt;n; ++i) {</span></a>
+<a name="501"><span class="lineNum">     501 </span><span class="lineCov">         80 :         displ5[i]=displ[i]*ndata;</span></a>
+<a name="502"><span class="lineNum">     502 </span>            :       }</a>
+<a name="503"><span class="lineNum">     503 </span><span class="lineCov">         20 :       dd.Allgatherv(&amp;dd.indexToBeSent[0],count,&amp;dd.indexToBeReceived[0],&amp;counts[0],&amp;displ[0]);</span></a>
+<a name="504"><span class="lineNum">     504 </span><span class="lineCov">         20 :       dd.Allgatherv(&amp;dd.positionsToBeSent[0],ndata*count,&amp;dd.positionsToBeReceived[0],&amp;counts5[0],&amp;displ5[0]);</span></a>
+<a name="505"><span class="lineNum">     505 </span><span class="lineCov">         20 :       int tot=displ[n-1]+counts[n-1];</span></a>
+<a name="506"><span class="lineNum">     506 </span><span class="lineCov">       1620 :       for(int i=0; i&lt;tot; i++) {</span></a>
+<a name="507"><span class="lineNum">     507 </span>            :         int dpoint=0;</a>
+<a name="508"><span class="lineNum">     508 </span><span class="lineCov">       7264 :         for(unsigned j=0; j&lt;values_to_get.size(); ++j) {</span></a>
+<a name="509"><span class="lineNum">     509 </span><span class="lineCov">       5664 :           values_to_get[j]-&gt;data[dd.indexToBeReceived[i]] = dd.positionsToBeReceived[ndata*i+dpoint];</span></a>
+<a name="510"><span class="lineNum">     510 </span><span class="lineCov">       5664 :           dpoint++;</span></a>
+<a name="511"><span class="lineNum">     511 </span>            :         }</a>
+<a name="512"><span class="lineNum">     512 </span>            :       }</a>
+<a name="513"><span class="lineNum">     513 </span>            :     }</a>
+<a name="514"><span class="lineNum">     514 </span>            :   }</a>
+<a name="515"><span class="lineNum">     515 </span><span class="lineCov">      72547 : }</span></a>
+<a name="516"><span class="lineNum">     516 </span>            : </a>
+<a name="517"><span class="lineNum">     517 </span><span class="lineCov">      72535 : void DomainDecomposition::wait() {</span></a>
+<a name="518"><span class="lineNum">     518 </span><span class="lineCov">     435210 :   for(const auto &amp; ip : inputs) {</span></a>
+<a name="519"><span class="lineNum">     519 </span><span class="lineCov">     362675 :     ip-&gt;dataCanBeSet=false;</span></a>
+<a name="520"><span class="lineNum">     520 </span>            :   }</a>
+<a name="521"><span class="lineNum">     521 </span>            : </a>
+<a name="522"><span class="lineNum">     522 </span><span class="lineCov">      72535 :   if(dd &amp;&amp; shuffledAtoms&gt;0) {</span></a>
+<a name="523"><span class="lineNum">     523 </span>            :     int ndata=0;</a>
+<a name="524"><span class="lineNum">     524 </span>            :     std::vector&lt;Value*&gt; values_to_set;</a>
+<a name="525"><span class="lineNum">     525 </span><span class="lineCov">      13128 :     for(const auto &amp; ip : inputs) {</span></a>
+<a name="526"><span class="lineNum">     526 </span><span class="lineCov">      10940 :       if( (!ip-&gt;fixed || firststep) &amp;&amp; ip-&gt;wasset ) {</span></a>
+<a name="527"><span class="lineNum">     527 </span><span class="lineCov">       6708 :         values_to_set.push_back(ip-&gt;copyOutput(0));</span></a>
+<a name="528"><span class="lineNum">     528 </span><span class="lineCov">       6708 :         ndata++;</span></a>
+<a name="529"><span class="lineNum">     529 </span>            :       }</a>
+<a name="530"><span class="lineNum">     530 </span>            :     }</a>
+<a name="531"><span class="lineNum">     531 </span>            : </a>
+<a name="532"><span class="lineNum">     532 </span>            : // receive toBeReceived</a>
+<a name="533"><span class="lineNum">     533 </span><span class="lineCov">       2188 :     if(asyncSent) {</span></a>
+<a name="534"><span class="lineNum">     534 </span>            :       Communicator::Status status;</a>
+<a name="535"><span class="lineNum">     535 </span>            :       std::size_t count=0;</a>
+<a name="536"><span class="lineNum">     536 </span><span class="lineCov">       9802 :       for(int i=0; i&lt;dd.Get_size(); i++) {</span></a>
+<a name="537"><span class="lineNum">     537 </span><span class="lineCov">       7634 :         dd.Recv(&amp;dd.indexToBeReceived[count],dd.indexToBeReceived.size()-count,i,666,status);</span></a>
+<a name="538"><span class="lineNum">     538 </span><span class="lineCov">       7634 :         int c=status.Get_count&lt;int&gt;();</span></a>
+<a name="539"><span class="lineNum">     539 </span><span class="lineCov">       7634 :         dd.Recv(&amp;dd.positionsToBeReceived[ndata*count],dd.positionsToBeReceived.size()-ndata*count,i,667);</span></a>
+<a name="540"><span class="lineNum">     540 </span><span class="lineCov">       7634 :         count+=c;</span></a>
+<a name="541"><span class="lineNum">     541 </span>            :       }</a>
+<a name="542"><span class="lineNum">     542 </span><span class="lineCov">      68220 :       for(int i=0; i&lt;count; i++) {</span></a>
+<a name="543"><span class="lineNum">     543 </span>            :         int dpoint=0;</a>
+<a name="544"><span class="lineNum">     544 </span><span class="lineCov">     276100 :         for(unsigned j=0; j&lt;values_to_set.size(); ++j) {</span></a>
+<a name="545"><span class="lineNum">     545 </span><span class="lineCov">     210048 :           values_to_set[j]-&gt;set(dd.indexToBeReceived[i], dd.positionsToBeReceived[ndata*i+dpoint] );</span></a>
+<a name="546"><span class="lineNum">     546 </span><span class="lineCov">     210048 :           dpoint++;</span></a>
+<a name="547"><span class="lineNum">     547 </span>            :         }</a>
+<a name="548"><span class="lineNum">     548 </span>            :       }</a>
+<a name="549"><span class="lineNum">     549 </span><span class="lineCov">       2168 :       asyncSent=false;</span></a>
+<a name="550"><span class="lineNum">     550 </span>            :     }</a>
+<a name="551"><span class="lineNum">     551 </span>            :   }</a>
+<a name="552"><span class="lineNum">     552 </span><span class="lineCov">      72535 : }</span></a>
+<a name="553"><span class="lineNum">     553 </span>            : </a>
+<a name="554"><span class="lineNum">     554 </span><span class="lineCov">        150 : unsigned DomainDecomposition::getNumberOfForcesToRescale() const {</span></a>
+<a name="555"><span class="lineNum">     555 </span><span class="lineCov">        150 :   return gatindex.size();</span></a>
+<a name="556"><span class="lineNum">     556 </span>            : }</a>
+<a name="557"><span class="lineNum">     557 </span>            : </a>
+<a name="558"><span class="lineNum">     558 </span><span class="lineCov">      72411 : void DomainDecomposition::apply() {</span></a>
+<a name="559"><span class="lineNum">     559 </span><span class="lineCov">      72411 :   std::vector&lt;unsigned&gt; forced_uniq_index(forced_unique.size());</span></a>
+<a name="560"><span class="lineNum">     560 </span><span class="lineCov">      72411 :   if(!(int(gatindex.size())==getNumberOfAtoms() &amp;&amp; shuffledAtoms==0)) {</span></a>
+<a name="561"><span class="lineNum">     561 </span><span class="lineCov">      24181 :     for(unsigned i=0; i&lt;forced_unique.size(); i++) {</span></a>
+<a name="562"><span class="lineNum">     562 </span><span class="lineCov">      22081 :       forced_uniq_index[i]=g2l[forced_unique[i].index()];</span></a>
+<a name="563"><span class="lineNum">     563 </span>            :     }</a>
+<a name="564"><span class="lineNum">     564 </span>            :   } else {</a>
+<a name="565"><span class="lineNum">     565 </span><span class="lineCov">    4189332 :     for(unsigned i=0; i&lt;forced_unique.size(); i++) {</span></a>
+<a name="566"><span class="lineNum">     566 </span><span class="lineCov">    4119021 :       forced_uniq_index[i]=forced_unique[i].index();</span></a>
+<a name="567"><span class="lineNum">     567 </span>            :     }</a>
+<a name="568"><span class="lineNum">     568 </span>            :   }</a>
+<a name="569"><span class="lineNum">     569 </span><span class="lineCov">     434456 :   for(const auto &amp; ip : inputs) {</span></a>
+<a name="570"><span class="lineNum">     570 </span><span class="lineCov">     362047 :     if( !(ip-&gt;getPntrToValue())-&gt;forcesWereAdded() || ip-&gt;noforce ) {</span></a>
+<a name="571"><span class="lineNum">     571 </span><span class="lineCov">     213671 :       continue;</span></a>
+<a name="572"><span class="lineNum">     572 </span><span class="lineCov">     148376 :     } else if( ip-&gt;wasscaled || (!unique_serial &amp;&amp; int(gatindex.size())==getNumberOfAtoms() &amp;&amp; shuffledAtoms==0) ) {</span></a>
+<a name="573"><span class="lineNum">     573 </span><span class="lineCov">      85787 :       (ip-&gt;mydata)-&gt;add_force( gatindex, ip-&gt;getPntrToValue() );</span></a>
+<a name="574"><span class="lineNum">     574 </span>            :     } else {</a>
+<a name="575"><span class="lineNum">     575 </span><span class="lineCov">      62589 :       (ip-&gt;mydata)-&gt;add_force( forced_unique, forced_uniq_index, ip-&gt;getPntrToValue() );</span></a>
+<a name="576"><span class="lineNum">     576 </span>            :     }</a>
+<a name="577"><span class="lineNum">     577 </span>            :   }</a>
+<a name="578"><span class="lineNum">     578 </span><span class="lineCov">      72409 : }</span></a>
+<a name="579"><span class="lineNum">     579 </span>            : </a>
+<a name="580"><span class="lineNum">     580 </span><span class="lineCov">      72409 : void DomainDecomposition::reset() {</span></a>
+<a name="581"><span class="lineNum">     581 </span><span class="lineCov">      72409 :   if( !unique_serial &amp;&amp; int(gatindex.size())==getNumberOfAtoms() &amp;&amp; shuffledAtoms==0 ) {</span></a>
+<a name="582"><span class="lineNum">     582 </span>            :     return;</a>
+<a name="583"><span class="lineNum">     583 </span>            :   }</a>
+<a name="584"><span class="lineNum">     584 </span>            :   // This is an optimisation to ensure that we don't call std::fill over the whole forces</a>
+<a name="585"><span class="lineNum">     585 </span>            :   // array if there are a small number of atoms passed between the MD code and PLUMED</a>
+<a name="586"><span class="lineNum">     586 </span><span class="lineCov">      23398 :   if( dd &amp;&amp; shuffledAtoms&gt;0 ) {</span></a>
+<a name="587"><span class="lineNum">     587 </span><span class="lineCov">       2074 :     getAllActiveAtoms( unique );</span></a>
+<a name="588"><span class="lineNum">     588 </span>            :   }</a>
+<a name="589"><span class="lineNum">     589 </span><span class="lineCov">     140388 :   for(const auto &amp; ip : inputs) {</span></a>
+<a name="590"><span class="lineNum">     590 </span><span class="lineCov">     116990 :     (ip-&gt;copyOutput(0))-&gt;clearInputForce( unique );</span></a>
+<a name="591"><span class="lineNum">     591 </span>            :   }</a>
+<a name="592"><span class="lineNum">     592 </span>            : }</a>
+<a name="593"><span class="lineNum">     593 </span>            : </a>
+<a name="594"><span class="lineNum">     594 </span><span class="lineCov">        114 : void DomainDecomposition::writeBinary(std::ostream&amp;o) {</span></a>
+<a name="595"><span class="lineNum">     595 </span><span class="lineCov">        684 :   for(const auto &amp; ip : inputs) {</span></a>
+<a name="596"><span class="lineNum">     596 </span><span class="lineCov">        570 :     ip-&gt;writeBinary(o);</span></a>
+<a name="597"><span class="lineNum">     597 </span>            :   }</a>
+<a name="598"><span class="lineNum">     598 </span><span class="lineCov">        114 : }</span></a>
+<a name="599"><span class="lineNum">     599 </span>            : </a>
+<a name="600"><span class="lineNum">     600 </span><span class="lineCov">        114 : void DomainDecomposition::readBinary(std::istream&amp;i) {</span></a>
+<a name="601"><span class="lineNum">     601 </span><span class="lineCov">        684 :   for(const auto &amp; ip : inputs) {</span></a>
+<a name="602"><span class="lineNum">     602 </span><span class="lineCov">        570 :     ip-&gt;readBinary(i);</span></a>
+<a name="603"><span class="lineNum">     603 </span>            :   }</a>
+<a name="604"><span class="lineNum">     604 </span><span class="lineCov">        114 : }</span></a>
+<a name="605"><span class="lineNum">     605 </span>            : </a>
+<a name="606"><span class="lineNum">     606 </span><span class="lineCov">      68727 : void DomainDecomposition::broadcastToDomains( Value* val ) {</span></a>
+<a name="607"><span class="lineNum">     607 </span><span class="lineCov">      68727 :   if( dd ) {</span></a>
+<a name="608"><span class="lineNum">     608 </span><span class="lineCov">      20496 :     dd.Bcast( val-&gt;data, 0 );</span></a>
+<a name="609"><span class="lineNum">     609 </span>            :   }</a>
+<a name="610"><span class="lineNum">     610 </span><span class="lineCov">      68727 : }</span></a>
+<a name="611"><span class="lineNum">     611 </span>            : </a>
+<a name="612"><span class="lineNum">     612 </span><span class="lineCov">       3989 : void DomainDecomposition::sumOverDomains( Value* val ) {</span></a>
+<a name="613"><span class="lineNum">     613 </span><span class="lineCov">       3989 :   if( dd &amp;&amp; shuffledAtoms&gt;0 ) {</span></a>
+<a name="614"><span class="lineNum">     614 </span><span class="lineNoCov">          0 :     dd.Sum( val-&gt;data );</span></a>
+<a name="615"><span class="lineNum">     615 </span>            :   }</a>
+<a name="616"><span class="lineNum">     616 </span><span class="lineCov">       3989 : }</span></a>
+<a name="617"><span class="lineNum">     617 </span>            : </a>
+<a name="618"><span class="lineNum">     618 </span><span class="lineCov">        900 : const long int&amp; DomainDecomposition::getDdStep() const {</span></a>
+<a name="619"><span class="lineNum">     619 </span><span class="lineCov">        900 :   return ddStep;</span></a>
+<a name="620"><span class="lineNum">     620 </span>            : }</a>
+<a name="621"><span class="lineNum">     621 </span>            : </a>
+<a name="622"><span class="lineNum">     622 </span><span class="lineCov">        459 : const std::vector&lt;int&gt;&amp; DomainDecomposition::getGatindex() const {</span></a>
+<a name="623"><span class="lineNum">     623 </span><span class="lineCov">        459 :   return gatindex;</span></a>
+<a name="624"><span class="lineNum">     624 </span>            : }</a>
+<a name="625"><span class="lineNum">     625 </span>            : </a>
+<a name="626"><span class="lineNum">     626 </span><span class="lineCov">       2183 : void DomainDecomposition::getAllActiveAtoms( std::vector&lt;AtomNumber&gt;&amp; u ) {</span></a>
+<a name="627"><span class="lineNum">     627 </span>            :   gch::small_vector&lt;const std::vector&lt;AtomNumber&gt;*,32&gt; vectors;</a>
+<a name="628"><span class="lineNum">     628 </span>            :   vectors.reserve(actions.size());</a>
+<a name="629"><span class="lineNum">     629 </span><span class="lineCov">      21016 :   for(unsigned i=0; i&lt;actions.size(); i++) {</span></a>
+<a name="630"><span class="lineNum">     630 </span><span class="lineCov">      18833 :     if(actions[i]-&gt;isActive()) {</span></a>
+<a name="631"><span class="lineNum">     631 </span><span class="lineCov">      13033 :       if(!actions[i]-&gt;getUnique().empty()) {</span></a>
+<a name="632"><span class="lineNum">     632 </span>            :         // unique are the local atoms</a>
+<a name="633"><span class="lineNum">     633 </span><span class="lineCov">      22912 :         vectors.push_back(&amp;actions[i]-&gt;getUnique());</span></a>
+<a name="634"><span class="lineNum">     634 </span>            :       }</a>
+<a name="635"><span class="lineNum">     635 </span>            :     }</a>
+<a name="636"><span class="lineNum">     636 </span>            :   }</a>
+<a name="637"><span class="lineNum">     637 </span>            :   u.clear();</a>
+<a name="638"><span class="lineNum">     638 </span><span class="lineCov">       2183 :   mergeVectorTools::mergeSortedVectors(vectors,u);</span></a>
+<a name="639"><span class="lineNum">     639 </span><span class="lineCov">       2183 : }</span></a>
+<a name="640"><span class="lineNum">     640 </span>            : </a>
+<a name="641"><span class="lineNum">     641 </span><span class="lineCov">        116 : void DomainDecomposition::createFullList(const TypesafePtr &amp; n) {</span></a>
+<a name="642"><span class="lineNum">     642 </span><span class="lineCov">        116 :   if( firststep ) {</span></a>
+<a name="643"><span class="lineNum">     643 </span><span class="lineCov">          7 :     int natoms = getNumberOfAtoms();</span></a>
+<a name="644"><span class="lineNum">     644 </span><span class="lineCov">          7 :     n.set(int(natoms));</span></a>
+<a name="645"><span class="lineNum">     645 </span><span class="lineCov">          7 :     fullList.resize(natoms);</span></a>
+<a name="646"><span class="lineNum">     646 </span><span class="lineCov">        803 :     for(unsigned i=0; i&lt;natoms; i++) {</span></a>
+<a name="647"><span class="lineNum">     647 </span><span class="lineCov">        796 :       fullList[i]=i;</span></a>
+<a name="648"><span class="lineNum">     648 </span>            :     }</a>
+<a name="649"><span class="lineNum">     649 </span>            :   } else {</a>
+<a name="650"><span class="lineNum">     650 </span>            : // We update here the unique list defined at Atoms::unique.</a>
+<a name="651"><span class="lineNum">     651 </span>            : // This is not very clear, and probably should be coded differently.</a>
+<a name="652"><span class="lineNum">     652 </span>            : // Hopefully this fix the longstanding issue with NAMD.</a>
+<a name="653"><span class="lineNum">     653 </span><span class="lineCov">        109 :     getAllActiveAtoms( unique );</span></a>
+<a name="654"><span class="lineNum">     654 </span><span class="lineCov">        109 :     fullList.clear();</span></a>
+<a name="655"><span class="lineNum">     655 </span><span class="lineCov">        109 :     fullList.reserve(unique.size());</span></a>
+<a name="656"><span class="lineNum">     656 </span><span class="lineCov">       5012 :     for(const auto &amp; p : unique) {</span></a>
+<a name="657"><span class="lineNum">     657 </span><span class="lineCov">       4903 :       fullList.push_back(p.index());</span></a>
+<a name="658"><span class="lineNum">     658 </span>            :     }</a>
+<a name="659"><span class="lineNum">     659 </span><span class="lineCov">        109 :     n.set(int(fullList.size()));</span></a>
+<a name="660"><span class="lineNum">     660 </span>            :   }</a>
+<a name="661"><span class="lineNum">     661 </span><span class="lineCov">        116 : }</span></a>
+<a name="662"><span class="lineNum">     662 </span>            : </a>
+<a name="663"><span class="lineNum">     663 </span><span class="lineCov">        116 : void DomainDecomposition::getFullList(const TypesafePtr &amp; x) {</span></a>
+<a name="664"><span class="lineNum">     664 </span>            :   auto xx=x.template get&lt;const int**&gt;();</a>
+<a name="665"><span class="lineNum">     665 </span><span class="lineCov">        116 :   if(!fullList.empty()) {</span></a>
+<a name="666"><span class="lineNum">     666 </span><span class="lineCov">        110 :     *xx=&amp;fullList[0];</span></a>
+<a name="667"><span class="lineNum">     667 </span>            :   } else {</a>
+<a name="668"><span class="lineNum">     668 </span><span class="lineCov">          6 :     *xx=NULL;</span></a>
+<a name="669"><span class="lineNum">     669 </span>            :   }</a>
+<a name="670"><span class="lineNum">     670 </span><span class="lineCov">        116 : }</span></a>
+<a name="671"><span class="lineNum">     671 </span>            : </a>
+<a name="672"><span class="lineNum">     672 </span><span class="lineCov">        116 : void DomainDecomposition::clearFullList() {</span></a>
+<a name="673"><span class="lineNum">     673 </span><span class="lineCov">        116 :   fullList.resize(0);</span></a>
+<a name="674"><span class="lineNum">     674 </span><span class="lineCov">        116 : }</span></a>
+<a name="675"><span class="lineNum">     675 </span>            : </a>
+<a name="676"><span class="lineNum">     676 </span>            : }</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="https://github.com/linux-test-project/lcov" target="_parent">LCOV version 1.16</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
